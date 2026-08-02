@@ -1,0 +1,6 @@
+.build/
+work/
+out/
+*.iso
+*.img
+packages/amethyne-settings/pages/__pycache__/

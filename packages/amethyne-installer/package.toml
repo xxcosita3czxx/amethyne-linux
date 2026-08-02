@@ -1,0 +1,13 @@
+[package]
+name = "amethyne-installer"
+type = "files"
+description = "Installer placeholder package for Amethyne Linux"
+url = "https://github.com/cosita3cz/amethyne-linux"
+arch = "x86_64"
+license = "custom"
+dependencies = ["arch-install-scripts"]
+
+[[install]]
+source = "skel/Desktop/"
+target = "/etc/skel/Desktop/"
+recursive = true

@@ -1,0 +1,16 @@
+pkgname=$pkgname
+pkgver=$pkgver
+pkgrel=$pkgrel
+pkgdesc='$pkgdesc'
+arch=($arch)
+url='$url'
+license=($license)
+depends=($depends)
+source=($source)
+sha256sums=($sha256sums)
+
+package() {
+    install -Dm755 "$srcdir/$app_name" "$pkgdir/usr/bin/$app_name"
+    install -Dm644 "$srcdir/$desktop_app_id.desktop" "$pkgdir/usr/share/applications/$desktop_app_id.desktop"
+$static_install
+}

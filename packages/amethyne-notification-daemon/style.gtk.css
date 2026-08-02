@@ -1,0 +1,27 @@
+.notification-window {
+    background: rgba(24, 24, 37, 0.96);
+    color: #cdd6f4;
+    border: 1px solid rgba(137, 180, 250, 0.55);
+    border-radius: 14px;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
+}
+
+.summary {
+    font-weight: 700;
+    font-size: 1.05rem;
+}
+
+.body {
+    color: #bac2de;
+}
+
+.close-button {
+    min-width: 28px;
+    min-height: 28px;
+    padding: 0;
+    border-radius: 999px;
+}
+
+.actions button {
+    padding: 6px 10px;
+}

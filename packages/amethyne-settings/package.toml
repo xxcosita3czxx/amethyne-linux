@@ -1,0 +1,32 @@
+[package]
+name = "amethyne-settings"
+app_name = "amethyne-settings"
+description = "Settings application for Amethyne Linux"
+url = "https://github.com/cosita3cz/amethyne-linux"
+arch = "x86_64"
+license = "custom"
+entrypoint = "main.py"
+dependencies = ["gtk4", "glib2", "gdk-pixbuf2"]
+
+[pyinstaller]
+windowed = true
+onefile = true
+add_data = ["style.gtk.css:."]
+collect_submodules = ["pages", "components"]
+hidden_imports = [
+  "gi",
+  "gi.repository.Gtk",
+  "gi.repository.Gdk",
+  "gi.repository.Gio",
+  "gi.repository.GdkPixbuf",
+]
+
+[desktop]
+app_id = "cz.amethyne.Settings"
+name = "Amethyne Settings"
+generic_name = "Settings"
+comment = "Configure Amethyne Linux settings"
+icon = "preferences-system"
+terminal = false
+categories = "Settings;System;GTK;"
+startup_wm_class = "cz.amethyne.Settings"

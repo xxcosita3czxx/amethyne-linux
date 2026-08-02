@@ -1,0 +1,21 @@
+[package]
+name = "amethyne-notification-daemon"
+app_name = "amethyne-notification-daemon"
+description = "Notification daemon for Amethyne Linux"
+url = "https://github.com/cosita3cz/amethyne-linux"
+arch = "x86_64"
+license = "custom"
+entrypoint = "main.py"
+dependencies = ["gtk4", "glib2", "gtk4-layer-shell", "python-gobject"]
+
+[pyinstaller]
+windowed = true
+onefile = true
+add_data = ["style.gtk.css:."]
+hidden_imports = [
+  "gi",
+  "gi.repository.Gtk",
+  "gi.repository.Gio",
+  "gi.repository.GLib",
+  "gi.repository.Gtk4LayerShell",
+]

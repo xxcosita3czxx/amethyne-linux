@@ -1,0 +1,136 @@
+window,
+.app-background,
+.content-background,
+.page-background,
+.page-background viewport,
+.settings-page {
+    background: #1b1b22;
+    background-color: #1b1b22;
+}
+
+headerbar {
+    background: #26262e;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.custom-titlebar {
+    min-height: 42px;
+    background: #26262e;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.window-title {
+    font-size: 16px;
+    font-weight: 700;
+}
+
+.sidebar,
+.sidebar viewport {
+    background: #15151b;
+    background-color: #15151b;
+    border-top-right-radius: 18px;
+    border-bottom-right-radius: 18px;
+}
+
+.sidebar {
+    border-right: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.profile-entry {
+    background: #24242d;
+    border: 1px solid rgba(255, 255, 255, 0.10);
+    border-radius: 16px;
+    padding: 0;
+}
+
+.profile-entry:hover {
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.profile-avatar {
+    background: rgba(139, 92, 246, 0.22);
+    border-radius: 999px;
+}
+
+.profile-name {
+    font-weight: 700;
+}
+
+.profile-hint {
+    opacity: 0.65;
+    font-size: 0.88em;
+}
+
+.sidebar-category-title {
+    font-size: 0.85em;
+    font-weight: 700;
+    opacity: 0.60;
+}
+
+.sidebar-category {
+    background: transparent;
+}
+
+.sidebar-category row {
+    border-radius: 0;
+    margin-bottom: 2px;
+}
+
+.sidebar-section-row {
+    opacity: 0.72;
+}
+
+.sidebar-section-row label {
+    font-size: 0.92em;
+}
+
+.sidebar-category row:hover {
+    background: rgba(255, 255, 255, 0.07);
+}
+
+.sidebar-category row:selected {
+    background: rgba(139, 92, 246, 0.28);
+    opacity: 1;
+}
+
+.page-title {
+    font-size: 26px;
+    font-weight: 700;
+}
+
+.page-description {
+    opacity: 0.70;
+    margin-bottom: 12px;
+}
+
+.group-title {
+    font-size: 15px;
+    font-weight: 700;
+    margin-left: 4px;
+    margin-bottom: 4px;
+}
+
+.settings-group {
+    background: #24242d;
+    background-color: #24242d;
+    border: 1px solid rgba(255, 255, 255, 0.10);
+    border-radius: 14px;
+}
+
+.settings-row {
+    background: transparent;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.settings-row:last-child {
+    border-bottom: none;
+}
+
+.setting-title {
+    font-weight: 600;
+}
+
+.setting-description {
+    opacity: 0.65;
+    font-size: 0.92em;
+}
