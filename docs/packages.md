@@ -253,6 +253,15 @@ mode = "0644"
 recursive = true
 ```
 
+Install a package-owned rootfs overlay:
+
+```toml
+[[install]]
+source = "rootfs"
+target = "/"
+recursive = true
+```
+
 Fields:
 
 | Key | Meaning |
@@ -264,7 +273,7 @@ Fields:
 
 If `recursive = false` and `source` is a directory, the builder creates only the `target` directory and ignores the source directory contents.
 
-Recursive directory installs preserve the directory tree below `source`. The `target` path is the destination directory, not a parent that receives the source directory name.
+Recursive directory installs preserve the directory tree below `source`. The `target` path is the destination directory, not a parent that receives the source directory name. `target = "/"` is allowed and means the package root itself.
 
 For example:
 

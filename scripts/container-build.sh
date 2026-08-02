@@ -136,6 +136,10 @@ if ! declare -p LIVE_PACKAGES >/dev/null 2>&1; then
     exit 1
 fi
 
+if ! declare -p INSTALL_PACKAGES >/dev/null 2>&1; then
+    INSTALL_PACKAGES=()
+fi
+
 build_local_packages
 
 echo "==> Preparing archiso profile: ${PROFILE_DIR}"
@@ -183,6 +187,24 @@ printf '%s\n' "${BASE_PACKAGES[@]}" "${LIVE_PACKAGES[@]}" > "${PROFILE_DIR}/pack
 mkdir -p "${PROFILE_DIR}/airootfs"
 if [[ -d "${AIROOTFS_DIR}" ]]; then
     cp -a "${AIROOTFS_DIR}/." "${PROFILE_DIR}/airootfs/"
+fi
+
+INSTALLER_DATA_DIR="${PROFILE_DIR}/airootfs/usr/share/amethyne/installer"
+mkdir -p "${INSTALLER_DATA_DIR}/packages"
+
+# Runtime metadata for the future installer. The live ISO package list includes
+# live-only tooling, while the target package list excludes LIVE_PACKAGES and is
+# intended as the starting point for installing Amethyne onto disk.
+printf '%s\n' "${BASE_PACKAGES[@]}" "${LIVE_PACKAGES[@]}" > "${INSTALLER_DATA_DIR}/packages/live.${ARCH}"
+printf '%s\n' "${BASE_PACKAGES[@]}" "${INSTALL_PACKAGES[@]:-}" > "${INSTALLER_DATA_DIR}/packages/target.${ARCH}"
+printf '%s\n' "${BASE_PACKAGES[@]}" > "${INSTALLER_DATA_DIR}/packages/base.${ARCH}"
+printf '%s\n' "${LIVE_PACKAGES[@]}" > "${INSTALLER_DATA_DIR}/packages/live-only.${ARCH}"
+printf '%s\n' "${INSTALL_PACKAGES[@]:-}" > "${INSTALLER_DATA_DIR}/packages/install-only.${ARCH}"
+cp -f "${PROFILE_DIR}/pacman.conf" "${INSTALLER_DATA_DIR}/pacman.conf"
+
+if [[ -d "${AIROOTFS_DIR}" ]]; then
+    mkdir -p "${INSTALLER_DATA_DIR}/airootfs"
+    cp -a "${AIROOTFS_DIR}/." "${INSTALLER_DATA_DIR}/airootfs/"
 fi
 
 echo "==> Package count: $(wc -l < "${PROFILE_DIR}/packages.${ARCH}")"

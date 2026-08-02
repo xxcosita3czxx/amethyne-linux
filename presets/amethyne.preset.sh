@@ -13,12 +13,13 @@ KERNEL_IMAGE="vmlinuz-linux-zen"
 INITRAMFS_IMAGE="initramfs-linux-zen.img"
 
 _UI_PACKAGES=(
+    amethyne-desktop
     amethyne-settings
     amethyne-notification-daemon
     hyprland
     hyprpaper
-    waybar
     xdg-desktop-portal-hyprland
+    waybar
     kitty
     sddm
 )
@@ -51,6 +52,7 @@ LIVE_PACKAGES=(
     syslinux
     # amethyne specific
     amethyne-installer
+    amethyne-live
 )
 
 # Packages only intended for the installed system.

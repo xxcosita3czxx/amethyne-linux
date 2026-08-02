@@ -1,0 +1,13 @@
+[package]
+name = "amethyne-live"
+type = "files"
+description = "Live environment files for Amethyne Linux"
+url = "https://github.com/cosita3cz/amethyne-linux"
+arch = "any"
+license = "custom"
+dependencies = []
+
+[[install]]
+source = "rootfs"
+target = "/"
+recursive = true

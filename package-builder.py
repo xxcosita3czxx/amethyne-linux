@@ -270,7 +270,7 @@ def parse_mode(mode: str | None, default: int) -> int:
 def package_root_target(config: PackageConfig, target: str) -> Path:
     normalized = target.lstrip("/")
     if not normalized:
-        raise RuntimeError("Install target must not be the filesystem root")
+        return config.pkgroot
     return config.pkgroot / normalized
 
 

@@ -45,3 +45,13 @@ packages/<package>/packages/
 ```
 
 See [`docs/packages.md`](docs/packages.md) for the package syntax and template format.
+
+## Installer data
+
+The ISO exports package lists, generated pacman config, and the preset airootfs overlay under:
+
+```text
+/usr/share/amethyne/installer/
+```
+
+See [`docs/installer.md`](docs/installer.md) for details.

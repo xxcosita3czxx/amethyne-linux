@@ -1,0 +1,15 @@
+pkgname=$pkgname
+pkgver=$pkgver
+pkgrel=$pkgrel
+pkgdesc='$pkgdesc'
+arch=($arch)
+url='$url'
+license=($license)
+depends=($depends)
+source=($source)
+sha256sums=($sha256sums)
+
+package() {
+    :
+$static_install
+}
