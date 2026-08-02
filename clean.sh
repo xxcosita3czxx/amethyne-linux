@@ -68,7 +68,7 @@ if ! rm -rf ./.build ./work ./out 2>/dev/null; then
         docker run --rm \
             -v "$(pwd):/work" \
             "${IMAGE_NAME}" \
-            sh -c 'rm -rf /work/.build /work/work /work/out'
+            sh -c 'chmod -R u+rwX /work/.build /work/work /work/out 2>/dev/null || true; rm -rf /work/.build /work/work /work/out'
     else
         echo "error: failed to remove build artifacts and Docker is not available for root cleanup" >&2
         exit 1
@@ -84,7 +84,7 @@ if [[ "${CLEAN_PACKAGES}" == true ]]; then
             docker run --rm \
                 -v "$(pwd):/work" \
                 "${IMAGE_NAME}" \
-                sh -c 'find /work/packages -mindepth 2 -maxdepth 2 \( -name build -o -name dist -o -name packages \) -exec rm -rf {} +; find /work/packages -mindepth 2 -maxdepth 2 -name "*.spec" -exec rm -f {} +'
+                sh -c 'find /work/packages -mindepth 2 -maxdepth 2 \( -name build -o -name dist -o -name packages \) -exec chmod -R u+rwX {} + 2>/dev/null || true; find /work/packages -mindepth 2 -maxdepth 2 \( -name build -o -name dist -o -name packages \) -exec rm -rf {} +; find /work/packages -mindepth 2 -maxdepth 2 -name "*.spec" -exec rm -f {} +'
         else
             echo "error: failed to remove package artifacts and Docker is not available for root cleanup" >&2
             exit 1

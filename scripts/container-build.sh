@@ -205,6 +205,7 @@ if [[ -d "${AIROOTFS_DIR}" ]]; then
     cp -a "${AIROOTFS_DIR}/." "${PROFILE_DIR}/airootfs/"
 fi
 
+
 INSTALLER_DATA_DIR="${PROFILE_DIR}/airootfs/usr/share/amethyne/installer"
 mkdir -p "${INSTALLER_DATA_DIR}/packages"
 
@@ -238,6 +239,8 @@ fi
 if [[ -d "${AIROOTFS_DIR}" ]]; then
     mkdir -p "${INSTALLER_DATA_DIR}/airootfs"
     cp -a "${AIROOTFS_DIR}/." "${INSTALLER_DATA_DIR}/airootfs/"
+    rm -f "${INSTALLER_DATA_DIR}/airootfs/root/customize_airootfs.sh"
+    rmdir --ignore-fail-on-non-empty "${INSTALLER_DATA_DIR}/airootfs/root" 2>/dev/null || true
 fi
 
 echo "==> Package count: $(wc -l < "${PROFILE_DIR}/packages.${ARCH}")"
