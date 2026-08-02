@@ -21,9 +21,7 @@ Files:
 ```text
 base.<arch>
 live.<arch>
-live-only.<arch>
-target.<arch>
-install-only.<arch>
+install.<arch>
 ```
 
 For the current x86_64 preset:
@@ -31,9 +29,7 @@ For the current x86_64 preset:
 ```text
 base.x86_64
 live.x86_64
-live-only.x86_64
-target.x86_64
-install-only.x86_64
+install.x86_64
 ```
 
 Meanings:
@@ -41,20 +37,12 @@ Meanings:
 | File | Contents |
 | --- | --- |
 | `base.<arch>` | `BASE_PACKAGES` from the preset. Shared baseline packages. |
-| `live-only.<arch>` | `LIVE_PACKAGES` from the preset. Packages only needed in the live ISO. |
-| `install-only.<arch>` | `INSTALL_PACKAGES` from the preset. Packages only intended for an installed target system. |
-| `live.<arch>` | `BASE_PACKAGES + LIVE_PACKAGES`. This is what the live ISO uses. |
-| `target.<arch>` | `BASE_PACKAGES + INSTALL_PACKAGES`. This is the starting package list for installing Amethyne to disk. |
+| `live.<arch>` | `LIVE_PACKAGES` from the preset. Packages only needed in the live ISO. |
+| `install.<arch>` | `INSTALL_PACKAGES` from the preset. Packages only intended for an installed target system. |
 
-The installer should normally use:
+The installer can combine these lists as needed. For example, a target install would usually use `base.<arch> + install.<arch>`, while the live ISO package set is `base.<arch> + live.<arch>`.
 
-```text
-/usr/share/amethyne/installer/packages/target.x86_64
-```
-
-as the target system package list.
-
-## Pacman config
+## Pacman config and local package repo
 
 The generated pacman config is copied to:
 
@@ -62,15 +50,29 @@ The generated pacman config is copied to:
 /usr/share/amethyne/installer/pacman.conf
 ```
 
-This includes the normal preset repositories and the temporary local Amethyne package repository used by the live build.
+This includes the normal preset repositories and the local Amethyne package repository.
 
-Important: the generated local repository path is build-time oriented:
+The built local package repository is exported into the live system at:
+
+```text
+/usr/share/amethyne/installer/repo/
+```
+
+That directory contains the custom Amethyne `.pkg.tar.*` files plus the pacman repo database for `amethyne-local`.
+
+During the ISO build, the live image uses a build-time repo path like:
 
 ```text
 file:///work/.build/<preset>/package-repo
 ```
 
-For a real installer, this may need to be rewritten or replaced with a target install repository source. Treat this file as a useful starting point rather than a final target-system config.
+For installer runtime data, that path is rewritten in `pacman.conf` to:
+
+```text
+file:///usr/share/amethyne/installer/repo
+```
+
+This lets the future installer install Amethyne custom packages from the ISO instead of trying to recover package files from the already-installed live root.
 
 ## Airootfs overlay
 
@@ -80,14 +82,13 @@ The source preset `airootfs` overlay is copied into the live system at:
 /usr/share/amethyne/installer/airootfs/
 ```
 
-This lets the installer inspect or reuse files from the live image overlay when creating an installed system.
+This overlay is intended to describe reusable base/target filesystem defaults for Amethyne. Live-ISO-only files should not live here; they should be provided by the `amethyne-live` package instead.
 
 Example:
 
 ```text
 /usr/share/amethyne/installer/airootfs/etc/skel/
 /usr/share/amethyne/installer/airootfs/etc/systemd/system/
-/usr/share/amethyne/installer/airootfs/root/customize_airootfs.sh
 ```
 
-Be careful when applying the airootfs overlay to a target installation. Some files are live-ISO-specific, such as autologin, live user setup, or build-time customization scripts. The installer should copy only the parts that make sense for an installed system, or use a future dedicated target-root overlay.
+The installer can use this directory as a target-root overlay source. Live-only behavior such as archiso initramfs presets, live user setup, live autologin, live MOTD, and firstboot masking belongs in `amethyne-live`.

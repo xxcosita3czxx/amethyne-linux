@@ -208,15 +208,20 @@ fi
 INSTALLER_DATA_DIR="${PROFILE_DIR}/airootfs/usr/share/amethyne/installer"
 mkdir -p "${INSTALLER_DATA_DIR}/packages"
 
-# Runtime metadata for the future installer. The live ISO package list includes
-# live-only tooling, while the target package list excludes LIVE_PACKAGES and is
-# intended as the starting point for installing Amethyne onto disk.
-printf '%s\n' "${BASE_PACKAGES[@]}" "${LIVE_PACKAGES[@]}" > "${INSTALLER_DATA_DIR}/packages/live.${ARCH}"
-printf '%s\n' "${BASE_PACKAGES[@]}" "${INSTALL_PACKAGES[@]:-}" > "${INSTALLER_DATA_DIR}/packages/target.${ARCH}"
+# Runtime metadata for the future installer. These are the raw preset package
+# groups; installer code can combine them as needed.
 printf '%s\n' "${BASE_PACKAGES[@]}" > "${INSTALLER_DATA_DIR}/packages/base.${ARCH}"
-printf '%s\n' "${LIVE_PACKAGES[@]}" > "${INSTALLER_DATA_DIR}/packages/live-only.${ARCH}"
-printf '%s\n' "${INSTALL_PACKAGES[@]:-}" > "${INSTALLER_DATA_DIR}/packages/install-only.${ARCH}"
+printf '%s\n' "${LIVE_PACKAGES[@]}" > "${INSTALLER_DATA_DIR}/packages/live.${ARCH}"
+printf '%s\n' "${INSTALL_PACKAGES[@]:-}" > "${INSTALLER_DATA_DIR}/packages/install.${ARCH}"
+
 cp -f "${PROFILE_DIR}/pacman.conf" "${INSTALLER_DATA_DIR}/pacman.conf"
+if [[ "${HAVE_LOCAL_REPO}" == true ]]; then
+    mkdir -p "${INSTALLER_DATA_DIR}/repo"
+    cp -a "${PACKAGE_REPO_DIR}/." "${INSTALLER_DATA_DIR}/repo/"
+    sed -i \
+        "s|file:///work/${PACKAGE_REPO_DIR#./}|file:///usr/share/amethyne/installer/repo|g" \
+        "${INSTALLER_DATA_DIR}/pacman.conf"
+fi
 
 if [[ -d "${AIROOTFS_DIR}" ]]; then
     mkdir -p "${INSTALLER_DATA_DIR}/airootfs"

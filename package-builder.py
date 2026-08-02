@@ -261,9 +261,9 @@ def write_desktop_file(config: PackageConfig) -> None:
     desktop_file.write_text("\n".join(lines), encoding="utf-8")
 
 
-def parse_mode(mode: str | None, default: int) -> int:
+def parse_mode(mode: str | None) -> int | None:
     if mode is None:
-        return default
+        return None
     return int(mode, 8)
 
 
@@ -274,7 +274,14 @@ def package_root_target(config: PackageConfig, target: str) -> Path:
     return config.pkgroot / normalized
 
 
-def install_static_file(source: Path, target: Path, mode: int) -> None:
+def install_static_file(source: Path, target: Path, mode: int | None) -> None:
+    if source.is_symlink():
+        target.parent.mkdir(parents=True, exist_ok=True)
+        if target.exists() or target.is_symlink():
+            target.unlink()
+        target.symlink_to(os.readlink(source))
+        return
+
     if source.is_dir():
         target.mkdir(parents=True, exist_ok=True)
         target.chmod(0o755)
@@ -282,10 +289,11 @@ def install_static_file(source: Path, target: Path, mode: int) -> None:
 
     target.parent.mkdir(parents=True, exist_ok=True)
     shutil.copy2(source, target)
-    target.chmod(mode)
+    if mode is not None:
+        target.chmod(mode)
 
 
-def install_static_directory(source: Path, target: Path, file_mode: int) -> None:
+def install_static_directory(source: Path, target: Path, file_mode: int | None) -> None:
     if not source.is_dir():
         raise RuntimeError(f"Install source is not a directory: {source}")
 
@@ -295,12 +303,18 @@ def install_static_directory(source: Path, target: Path, file_mode: int) -> None
         relative_path = path.relative_to(source)
         target_path = target / relative_path
 
-        if path.is_dir():
+        if path.is_symlink():
+            target_path.parent.mkdir(parents=True, exist_ok=True)
+            if target_path.exists() or target_path.is_symlink():
+                target_path.unlink()
+            target_path.symlink_to(os.readlink(path))
+        elif path.is_dir():
             target_path.mkdir(parents=True, exist_ok=True)
         elif path.is_file():
             target_path.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(path, target_path)
-            target_path.chmod(file_mode)
+            if file_mode is not None:
+                target_path.chmod(file_mode)
 
 
 def install_static_entries(config: PackageConfig) -> None:
@@ -310,7 +324,7 @@ def install_static_entries(config: PackageConfig) -> None:
             raise RuntimeError(f"Install source does not exist: {source}")
 
         target = package_root_target(config, entry.target)
-        mode = parse_mode(entry.mode, 0o644)
+        mode = parse_mode(entry.mode)
 
         if entry.recursive:
             install_static_directory(source, target, mode)
@@ -388,25 +402,32 @@ def render_pkgbuild(config: PackageConfig, version: str, pkgrel: str) -> Path:
         source_name = f"static-{index}-{source.name}"
         package_source = pkgbuild_dir / source_name
         if source.is_dir():
-            shutil.copytree(source, package_source)
+            shutil.copytree(source, package_source, symlinks=True)
         else:
-            shutil.copy2(source, package_source)
+            shutil.copy2(source, package_source, follow_symlinks=False)
         source_files.append(source_name)
 
         target = entry.target.lstrip("/")
-        mode = entry.mode or "0644"
+        mode = entry.mode
         if entry.recursive:
-            static_install_lines.append(
+            lines = (
                 f"    install -dm755 \"$pkgdir/{target}\"\n"
-                f"    cp -a \"$srcdir/{source_name}/.\" \"$pkgdir/{target}/\"\n"
-                f"    find \"$pkgdir/{target}\" -type f -exec chmod {mode} {{}} +"
+                f"    cp -a \"$srcdir/{source_name}/.\" \"$pkgdir/{target}/\""
             )
+            if mode is not None:
+                lines += f"\n    find \"$pkgdir/{target}\" -type f -exec chmod {mode} {{}} +"
+            static_install_lines.append(lines)
         elif source.is_dir():
             static_install_lines.append(f"    install -dm755 \"$pkgdir/{target}\"")
         else:
-            static_install_lines.append(
-                f"    install -Dm{mode} \"$srcdir/{source_name}\" \"$pkgdir/{target}\""
-            )
+            if mode is None:
+                static_install_lines.append(
+                    f"    install -Dm644 \"$srcdir/{source_name}\" \"$pkgdir/{target}\""
+                )
+            else:
+                static_install_lines.append(
+                    f"    install -Dm{mode} \"$srcdir/{source_name}\" \"$pkgdir/{target}\""
+                )
 
     substitutions = {
         "pkgname": config.name,
@@ -451,7 +472,7 @@ def add_tar_entry(archive: tarfile.TarFile, source: Path, archive_name: str, mod
     info.gname = "root"
     info.mode = mode
 
-    if source.is_dir():
+    if source.is_symlink() or source.is_dir():
         archive.addfile(info)
     else:
         with source.open("rb") as source_file:
@@ -497,7 +518,9 @@ def build_direct_package(config: PackageConfig, version: str, pkgrel: str, packa
             if path.name == ".PKGINFO":
                 continue
             archive_name = path.relative_to(config.pkgroot).as_posix()
-            if path.is_dir():
+            if path.is_symlink():
+                add_tar_entry(archive, path, archive_name, 0o777)
+            elif path.is_dir():
                 add_tar_entry(archive, path, archive_name, 0o755)
             elif path.is_file():
                 mode = 0o755 if os.access(path, os.X_OK) else 0o644

@@ -268,12 +268,12 @@ Fields:
 | --- | --- |
 | `source` | File or directory path relative to the package directory. |
 | `target` | Absolute install path inside the target system/package root. |
-| `mode` | File mode for installed files. Optional; defaults to `0644`. |
+| `mode` | Optional file mode override for installed regular files. If omitted, source file modes are preserved. |
 | `recursive` | If `true`, `source` must be a directory and all files are copied recursively. Defaults to `false`. |
 
 If `recursive = false` and `source` is a directory, the builder creates only the `target` directory and ignores the source directory contents.
 
-Recursive directory installs preserve the directory tree below `source`. The `target` path is the destination directory, not a parent that receives the source directory name. `target = "/"` is allowed and means the package root itself.
+Recursive directory installs preserve the directory tree below `source`, including symlinks and executable bits. The `target` path is the destination directory, not a parent that receives the source directory name. `target = "/"` is allowed and means the package root itself.
 
 For example:
 
