@@ -2,6 +2,8 @@ FROM archlinux:latest
 
 RUN pacman -Syu --noconfirm \
         archiso \
+        base-devel \
+        git \
         grub \
         gtk4 \
         gtk4-layer-shell \

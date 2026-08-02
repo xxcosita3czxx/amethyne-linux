@@ -16,11 +16,13 @@ _UI_PACKAGES=(
     amethyne-desktop
     amethyne-settings
     amethyne-gtk-theme
+    bibata-cursor-theme
     amethyne-notification-daemon
     hyprland
     hyprpaper
     xdg-desktop-portal-hyprland
     waybar
+    fuzzel
     kitty
     sddm
 )
@@ -29,7 +31,6 @@ _DRIVERS=(
     mesa
     libglvnd
     libva-mesa-driver
-    mesa-vdpau
     vulkan-intel
     vulkan-radeon
     vulkan-nouveau

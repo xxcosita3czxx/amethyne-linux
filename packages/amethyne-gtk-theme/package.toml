@@ -5,7 +5,7 @@ description = "GTK theme and visual defaults for Amethyne Linux"
 url = "https://github.com/cosita3cz/amethyne-linux"
 arch = "any"
 license = "custom"
-dependencies = ["gtk3", "gtk4", "adwaita-icon-theme", "adwaita-cursors"]
+dependencies = ["gtk3", "gtk4", "adwaita-icon-theme", "bibata-cursor-theme", "inter-font"]
 
 [[install]]
 source = "rootfs"

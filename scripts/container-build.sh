@@ -36,6 +36,33 @@ print(package.get(field, ""))
 PY
 }
 
+build_aur_package() {
+    local package_name="$1"
+    local package_url="$2"
+    local package_dir="$3"
+    local aur_build_dir="${package_dir}/build/aur"
+
+    if [[ -z "${package_url}" ]]; then
+        echo "error: AUR package ${package_name} is missing package.url" >&2
+        exit 1
+    fi
+
+    if ! id -u amethyne-builder >/dev/null 2>&1; then
+        useradd --create-home --shell /bin/bash amethyne-builder
+    fi
+
+    rm -rf "${package_dir}/build" "${package_dir}/packages"
+    mkdir -p "${package_dir}/build" "${package_dir}/packages"
+    chown -R amethyne-builder:amethyne-builder "${package_dir}/build" "${package_dir}/packages"
+
+    git clone --depth 1 "${package_url}" "${aur_build_dir}"
+    chown -R amethyne-builder:amethyne-builder "${aur_build_dir}"
+
+    runuser -u amethyne-builder -- bash -lc "cd '${aur_build_dir}' && makepkg --force --clean --cleanbuild --nodeps --noconfirm"
+
+    find "${aur_build_dir}" -maxdepth 1 -type f -name "${package_name}-*.pkg.tar.*" -exec cp -f {} "${package_dir}/packages/" \;
+}
+
 build_local_packages() {
     local package_configs=()
     local package_config
@@ -43,6 +70,8 @@ build_local_packages() {
     local package_basename
     local package_name
     local package_arch
+    local package_type
+    local package_url
     local package_glob
     local package_file
 
@@ -65,6 +94,8 @@ build_local_packages() {
         package_basename="$(basename "$package_dir")"
         package_name="$(read_package_field "$package_config" name)"
         package_arch="$(read_package_field "$package_config" arch)"
+        package_type="$(read_package_field "$package_config" type)"
+        package_url="$(read_package_field "$package_config" url)"
 
         if [[ -z "$package_name" ]]; then
             echo "error: package name missing in ${package_config}" >&2
@@ -75,7 +106,15 @@ build_local_packages() {
             package_arch="x86_64"
         fi
 
-        package_glob="${package_dir}/packages/${package_name}-${PACKAGE_VERSION}-${PACKAGE_REL}-${package_arch}.pkg.tar.*"
+        if [[ -z "$package_type" ]]; then
+            package_type="python-app"
+        fi
+
+        if [[ "$package_type" == "aur" ]]; then
+            package_glob="${package_dir}/packages/${package_name}-*.pkg.tar.*"
+        else
+            package_glob="${package_dir}/packages/${package_name}-${PACKAGE_VERSION}-${PACKAGE_REL}-${package_arch}.pkg.tar.*"
+        fi
 
         should_build=false
         if [[ "${FORCE_REBUILD_PACKAGES}" == true ]]; then
@@ -85,7 +124,7 @@ build_local_packages() {
             should_build=true
             build_reason="missing"
         else
-            package_file="$(find "${package_dir}/packages" -maxdepth 1 -type f -name "${package_name}-${PACKAGE_VERSION}-${PACKAGE_REL}-${package_arch}.pkg.tar.*" | sort | tail -n 1)"
+            package_file="$(find "${package_dir}/packages" -maxdepth 1 -type f -name "$(basename "${package_glob}")" | sort | tail -n 1)"
             if find "${package_dir}" \
                 -path "${package_dir}/build" -prune -o \
                 -path "${package_dir}/dist" -prune -o \
@@ -100,12 +139,16 @@ build_local_packages() {
 
         if [[ "${should_build}" == true ]]; then
             echo "==> Building local package (${build_reason}): ${package_name}"
-            ./package-builder.py \
-                "${package_basename}" \
-                --version "${PACKAGE_VERSION}" \
-                --pkgrel "${PACKAGE_REL}" \
-                --direct \
-                --clean
+            if [[ "${package_type}" == "aur" ]]; then
+                build_aur_package "${package_name}" "${package_url}" "${package_dir}"
+            else
+                ./package-builder.py \
+                    "${package_basename}" \
+                    --version "${PACKAGE_VERSION}" \
+                    --pkgrel "${PACKAGE_REL}" \
+                    --direct \
+                    --clean
+            fi
         else
             echo "==> Reusing existing local package: ${package_name}"
         fi
@@ -115,7 +158,7 @@ build_local_packages() {
             exit 1
         fi
 
-        package_file="$(find "${package_dir}/packages" -maxdepth 1 -type f -name "${package_name}-${PACKAGE_VERSION}-${PACKAGE_REL}-${package_arch}.pkg.tar.*" | sort | tail -n 1)"
+        package_file="$(find "${package_dir}/packages" -maxdepth 1 -type f -name "$(basename "${package_glob}")" | sort | tail -n 1)"
         cp -f "${package_file}" "${PACKAGE_REPO_DIR}/"
     done
 

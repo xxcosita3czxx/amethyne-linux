@@ -50,7 +50,7 @@ dialog {
 }
 
 button {
-    border-radius: 10px;
+    border-radius: 16px;
 }
 
 button.suggested-action {
@@ -66,7 +66,7 @@ button.destructive-action {
 entry,
 spinbutton,
 combobox {
-    border-radius: 10px;
+    border-radius: 16px;
 }
 
 row:selected,
