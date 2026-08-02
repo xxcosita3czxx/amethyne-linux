@@ -28,8 +28,17 @@ _UI_PACKAGES=(
 _DRIVERS=(
     mesa
     libglvnd
+    libva-mesa-driver
+    mesa-vdpau
+    vulkan-intel
+    vulkan-radeon
+    vulkan-nouveau
     vulkan-virtio
     virglrenderer
+    intel-media-driver
+    xf86-video-amdgpu
+    xf86-video-intel
+    xf86-video-nouveau
 )
 
 _VM_PACKAGES=(

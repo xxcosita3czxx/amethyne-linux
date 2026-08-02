@@ -12,11 +12,11 @@ import gi
 
 gi.require_version("Gtk", "4.0")
 gi.require_version("Gdk", "4.0")
-from gi.repository import Gdk, Gio, GLib, Gtk  # noqa: E402
+from gi.repository import Gdk, Gio, GLib, Gtk
 
 try:
     gi.require_version("Gtk4LayerShell", "1.0")
-    from gi.repository import Gtk4LayerShell as LayerShell  # noqa: E402
+    from gi.repository import Gtk4LayerShell as LayerShell
 except ValueError:
     LayerShell = None
 
@@ -109,7 +109,7 @@ class Notification:
 
 
 class NotificationWindow(Gtk.ApplicationWindow):
-    def __init__(self, daemon: "NotificationDaemon", notification: Notification) -> None:
+    def __init__(self, daemon: NotificationDaemon, notification: Notification) -> None:
         super().__init__(application=daemon.app)
         self.daemon = daemon
         self.notification = notification
