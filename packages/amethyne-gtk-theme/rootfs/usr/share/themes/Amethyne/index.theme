@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=X-GNOME-Metatheme
+Name=Amethyne
+Comment=Amethyne GTK theme
+
+[X-GNOME-Metatheme]
+GtkTheme=Amethyne
+IconTheme=Adwaita
+CursorTheme=Adwaita

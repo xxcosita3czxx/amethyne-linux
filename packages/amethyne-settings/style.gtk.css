@@ -28,8 +28,8 @@ headerbar {
 .sidebar viewport {
     background: #15151b;
     background-color: #15151b;
-    border-top-right-radius: 18px;
-    border-bottom-right-radius: 18px;
+    border-top-right-radius: 16px;
+    border-bottom-right-radius: 16px;
 }
 
 .sidebar {
@@ -114,7 +114,7 @@ headerbar {
     background: #24242d;
     background-color: #24242d;
     border: 1px solid rgba(255, 255, 255, 0.10);
-    border-radius: 14px;
+    border-radius: 16px;
 }
 
 .settings-row {
@@ -124,6 +124,10 @@ headerbar {
 
 .settings-row:last-child {
     border-bottom: none;
+}
+
+switch {
+    min-height: 20px;
 }
 
 .setting-title {

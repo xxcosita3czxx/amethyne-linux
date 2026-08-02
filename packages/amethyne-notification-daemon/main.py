@@ -14,27 +14,35 @@ gi.require_version("Gtk", "4.0")
 gi.require_version("Gdk", "4.0")
 from gi.repository import Gdk, Gio, GLib, Gtk  # noqa: E402
 
+try:
+    gi.require_version("Gtk4LayerShell", "1.0")
+    from gi.repository import Gtk4LayerShell as LayerShell  # noqa: E402
+except ValueError:
+    LayerShell = None
 
-def is_wayland_session() -> bool:
+USE_LAYER_SHELL = False
+
+
+def configure_layer_shell_mode() -> str:
+    global USE_LAYER_SHELL
+
     gdk_backend = os.environ.get("GDK_BACKEND", "").lower()
     if gdk_backend == "x11":
-        return False
+        USE_LAYER_SHELL = False
+        return "X11/debug normal-window (GDK_BACKEND=x11)"
 
-    return bool(os.environ.get("WAYLAND_DISPLAY")) or os.environ.get("XDG_SESSION_TYPE") == "wayland"
+    if LayerShell is None:
+        USE_LAYER_SHELL = False
+        return "normal-window (Gtk4LayerShell GI bindings missing)"
 
+    if not LayerShell.is_supported():
+        display = Gdk.Display.get_default()
+        display_name = display.__class__.__name__ if display is not None else "none"
+        USE_LAYER_SHELL = False
+        return f"normal-window (layer-shell unsupported on display {display_name})"
 
-USE_LAYER_SHELL = is_wayland_session()
-LayerShell = None
-
-if USE_LAYER_SHELL:
-    try:
-        gi.require_version("Gtk4LayerShell", "1.0")
-        from gi.repository import Gtk4LayerShell as LayerShell  # noqa: E402
-    except ValueError as error:
-        raise SystemExit(
-            "Wayland session detected, but Gtk4LayerShell GI bindings are missing. "
-            "Install gtk4-layer-shell before running amethyne-notification-daemon on Wayland."
-        ) from error
+    USE_LAYER_SHELL = True
+    return "Wayland layer-shell"
 
 APP_ID = "cz.cosita.NotificationDaemon"
 BUS_NAME = "org.freedesktop.Notifications"
@@ -100,9 +108,9 @@ class Notification:
     expire_timeout: int
 
 
-class NotificationWindow(Gtk.Window):
+class NotificationWindow(Gtk.ApplicationWindow):
     def __init__(self, daemon: "NotificationDaemon", notification: Notification) -> None:
-        super().__init__()
+        super().__init__(application=daemon.app)
         self.daemon = daemon
         self.notification = notification
         self.timeout_source_id: int | None = None
@@ -163,6 +171,10 @@ class NotificationWindow(Gtk.Window):
 
         assert LayerShell is not None
         LayerShell.init_for_window(self)
+        if not LayerShell.is_layer_window(self):
+            raise RuntimeError("Gtk4LayerShell did not initialize this notification as a layer window")
+
+        self.set_focusable(False)
         LayerShell.set_namespace(self, "amethyne-notification-daemon")
         LayerShell.set_layer(self, LayerShell.Layer.OVERLAY)
         LayerShell.set_keyboard_mode(self, LayerShell.KeyboardMode.NONE)
@@ -222,7 +234,8 @@ class NotificationWindow(Gtk.Window):
 
 
 class NotificationDaemon:
-    def __init__(self) -> None:
+    def __init__(self, app: Gtk.Application) -> None:
+        self.app = app
         self.connection: Gio.DBusConnection | None = None
         self.registration_id: int | None = None
         self.owns_notification_bus_name = False
@@ -425,10 +438,16 @@ def main() -> int:
     Gtk.init()
     load_css()
 
-    mode = "Wayland layer-shell" if USE_LAYER_SHELL else "X11/debug normal-window"
+    mode = configure_layer_shell_mode()
     print(f"Starting Amethyne Notification Daemon in {mode} mode", flush=True)
 
-    daemon = NotificationDaemon()
+    app = Gtk.Application(
+        application_id=APP_ID,
+        flags=Gio.ApplicationFlags.NON_UNIQUE,
+    )
+    app.register(None)
+
+    daemon = NotificationDaemon(app)
     daemon.start()
 
     loop = GLib.MainLoop()

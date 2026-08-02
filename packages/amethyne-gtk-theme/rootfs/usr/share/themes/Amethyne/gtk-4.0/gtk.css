@@ -1,0 +1,96 @@
+@import url("resource:///org/gtk/libgtk/theme/Default/gtk.css");
+
+@define-color theme_bg_color #f7f7fb;
+@define-color theme_fg_color #1f1f29;
+@define-color theme_base_color #ffffff;
+@define-color theme_text_color #1f1f29;
+@define-color theme_selected_bg_color #7c3aed;
+@define-color theme_selected_fg_color #ffffff;
+@define-color borders rgba(31, 31, 41, 0.12);
+@define-color insensitive_fg_color rgba(31, 31, 41, 0.45);
+@define-color warning_color #b45309;
+@define-color error_color #dc2626;
+@define-color success_color #16a34a;
+
+window,
+.background {
+    background: @theme_bg_color;
+    color: @theme_fg_color;
+}
+
+.view,
+textview,
+listview,
+columnview,
+gridview {
+    background: @theme_bg_color;
+    color: @theme_fg_color;
+}
+
+headerbar,
+.titlebar,
+.toolbar {
+    background: shade(@theme_base_color, 0.98);
+    color: @theme_fg_color;
+    border-bottom: 1px solid @borders;
+}
+
+.sidebar {
+    background: shade(@theme_bg_color, 0.96);
+    color: @theme_fg_color;
+}
+
+.card,
+frame,
+popover,
+dialog {
+    background: @theme_base_color;
+    color: @theme_fg_color;
+    border: 1px solid @borders;
+    border-radius: 16px;
+}
+
+button {
+    border-radius: 10px;
+}
+
+button.suggested-action {
+    background: @theme_selected_bg_color;
+    color: @theme_selected_fg_color;
+}
+
+button.destructive-action {
+    background: @error_color;
+    color: #ffffff;
+}
+
+entry,
+searchentry,
+spinbutton,
+combobox,
+dropdown {
+    border-radius: 10px;
+}
+
+row:selected,
+.view:selected,
+*:selected {
+    background: alpha(@theme_selected_bg_color, 0.18);
+    color: @theme_fg_color;
+}
+
+.dim-label {
+    opacity: 0.65;
+}
+
+.error {
+    color: @error_color;
+}
+
+.warning {
+    color: @warning_color;
+}
+
+.success {
+    color: @success_color;
+}

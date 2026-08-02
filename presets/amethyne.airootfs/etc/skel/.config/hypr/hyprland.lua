@@ -46,7 +46,7 @@ hl.on("hyprland.start", function ()
   hl.exec_cmd("hyprpaper")
   hl.exec_cmd("nm-applet")
   hl.exec_cmd("waybar")
-  hl.exec_cmd("amethyne-notification-daemon")
+  hl.exec_cmd("sh -c 'GDK_BACKEND=wayland amethyne-notification-daemon'")
 end)
 
 

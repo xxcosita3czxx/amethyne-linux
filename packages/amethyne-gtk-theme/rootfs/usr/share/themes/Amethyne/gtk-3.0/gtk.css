@@ -1,0 +1,93 @@
+@import url("resource:///org/gtk/libgtk/theme/Adwaita/gtk-contained.css");
+
+@define-color theme_bg_color #f7f7fb;
+@define-color theme_fg_color #1f1f29;
+@define-color theme_base_color #ffffff;
+@define-color theme_text_color #1f1f29;
+@define-color theme_selected_bg_color #7c3aed;
+@define-color theme_selected_fg_color #ffffff;
+@define-color borders rgba(31, 31, 41, 0.12);
+@define-color insensitive_fg_color rgba(31, 31, 41, 0.45);
+@define-color warning_color #b45309;
+@define-color error_color #dc2626;
+@define-color success_color #16a34a;
+
+window,
+.background {
+    background-color: @theme_bg_color;
+    color: @theme_fg_color;
+}
+
+.view,
+.view text,
+textview text,
+treeview {
+    background-color: @theme_bg_color;
+    color: @theme_fg_color;
+}
+
+headerbar,
+.titlebar,
+.toolbar {
+    background-color: shade(@theme_base_color, 0.98);
+    color: @theme_fg_color;
+    border-bottom: 1px solid @borders;
+}
+
+.sidebar {
+    background-color: shade(@theme_bg_color, 0.96);
+    color: @theme_fg_color;
+}
+
+.card,
+frame,
+popover,
+dialog {
+    background-color: @theme_base_color;
+    color: @theme_fg_color;
+    border: 1px solid @borders;
+    border-radius: 16px;
+}
+
+button {
+    border-radius: 10px;
+}
+
+button.suggested-action {
+    background-color: @theme_selected_bg_color;
+    color: @theme_selected_fg_color;
+}
+
+button.destructive-action {
+    background-color: @error_color;
+    color: #ffffff;
+}
+
+entry,
+spinbutton,
+combobox {
+    border-radius: 10px;
+}
+
+row:selected,
+.view:selected,
+*:selected {
+    background-color: alpha(@theme_selected_bg_color, 0.18);
+    color: @theme_fg_color;
+}
+
+.dim-label {
+    opacity: 0.65;
+}
+
+.error {
+    color: @error_color;
+}
+
+.warning {
+    color: @warning_color;
+}
+
+.success {
+    color: @success_color;
+}

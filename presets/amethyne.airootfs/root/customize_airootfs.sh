@@ -7,7 +7,7 @@ LIVE_PASSWORD="amethyne"
 if ! id -u "${LIVE_USER}" >/dev/null 2>&1; then
     useradd \
         --create-home \
-        --groups wheel,audio,video,input,storage,network \
+        --groups wheel,audio,video,render,input,storage,network \
         --shell /bin/bash \
         "${LIVE_USER}"
 fi

@@ -15,6 +15,7 @@ INITRAMFS_IMAGE="initramfs-linux-zen.img"
 _UI_PACKAGES=(
     amethyne-desktop
     amethyne-settings
+    amethyne-gtk-theme
     amethyne-notification-daemon
     hyprland
     hyprpaper
@@ -31,12 +32,18 @@ _DRIVERS=(
     virglrenderer
 )
 
+_VM_PACKAGES=(
+    qemu-guest-agent
+    spice-vdagent
+)
+
 # Packages shared by the live ISO and the installed system.
 BASE_PACKAGES=(
     base
     linux-zen
     linux-firmware
     "${_DRIVERS[@]}"
+    "${_VM_PACKAGES[@]}"
     networkmanager
     libnotify
     sudo

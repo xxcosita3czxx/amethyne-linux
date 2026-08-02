@@ -77,13 +77,29 @@ build_local_packages() {
 
         package_glob="${package_dir}/packages/${package_name}-${PACKAGE_VERSION}-${PACKAGE_REL}-${package_arch}.pkg.tar.*"
 
-        if [[ "${FORCE_REBUILD_PACKAGES}" == true ]] || ! compgen -G "${package_glob}" >/dev/null; then
-            if [[ "${FORCE_REBUILD_PACKAGES}" == true ]]; then
-                echo "==> Rebuilding local package: ${package_name}"
-            else
-                echo "==> Building missing local package: ${package_name}"
+        should_build=false
+        if [[ "${FORCE_REBUILD_PACKAGES}" == true ]]; then
+            should_build=true
+            build_reason="forced"
+        elif ! compgen -G "${package_glob}" >/dev/null; then
+            should_build=true
+            build_reason="missing"
+        else
+            package_file="$(find "${package_dir}/packages" -maxdepth 1 -type f -name "${package_name}-${PACKAGE_VERSION}-${PACKAGE_REL}-${package_arch}.pkg.tar.*" | sort | tail -n 1)"
+            if find "${package_dir}" \
+                -path "${package_dir}/build" -prune -o \
+                -path "${package_dir}/dist" -prune -o \
+                -path "${package_dir}/packages" -prune -o \
+                -type f \
+                -newer "${package_file}" \
+                -print -quit | grep -q .; then
+                should_build=true
+                build_reason="stale"
             fi
+        fi
 
+        if [[ "${should_build}" == true ]]; then
+            echo "==> Building local package (${build_reason}): ${package_name}"
             ./package-builder.py \
                 "${package_basename}" \
                 --version "${PACKAGE_VERSION}" \

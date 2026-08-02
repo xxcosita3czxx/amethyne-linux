@@ -1,0 +1,13 @@
+@import url("gtk.css");
+
+@define-color theme_bg_color #1b1b22;
+@define-color theme_fg_color #f2f2f7;
+@define-color theme_base_color #24242d;
+@define-color theme_text_color #f2f2f7;
+@define-color theme_selected_bg_color #8b5cf6;
+@define-color theme_selected_fg_color #ffffff;
+@define-color borders rgba(255, 255, 255, 0.10);
+@define-color insensitive_fg_color rgba(242, 242, 247, 0.40);
+@define-color warning_color #f59e0b;
+@define-color error_color #ef4444;
+@define-color success_color #22c55e;
