@@ -58,7 +58,7 @@ The built local package repository is exported into the live system at:
 /usr/share/amethyne/installer/repo/
 ```
 
-That directory contains the custom Amethyne `.pkg.tar.*` files plus the pacman repo database for `amethyne-local`.
+That directory contains target-relevant custom Amethyne `.pkg.tar.*` files plus the pacman repo database for `amethyne-local`. Only local packages referenced by `BASE_PACKAGES` or `INSTALL_PACKAGES` are exported there; live-only local packages do not need to be duplicated for the target installer.
 
 During the ISO build, the live image uses a build-time repo path like:
 

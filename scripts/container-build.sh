@@ -217,10 +217,22 @@ printf '%s\n' "${INSTALL_PACKAGES[@]:-}" > "${INSTALLER_DATA_DIR}/packages/insta
 cp -f "${PROFILE_DIR}/pacman.conf" "${INSTALLER_DATA_DIR}/pacman.conf"
 if [[ "${HAVE_LOCAL_REPO}" == true ]]; then
     mkdir -p "${INSTALLER_DATA_DIR}/repo"
-    cp -a "${PACKAGE_REPO_DIR}/." "${INSTALLER_DATA_DIR}/repo/"
-    sed -i \
-        "s|file:///work/${PACKAGE_REPO_DIR#./}|file:///usr/share/amethyne/installer/repo|g" \
-        "${INSTALLER_DATA_DIR}/pacman.conf"
+
+    copied_installer_package=false
+    for package_name in "${BASE_PACKAGES[@]}" "${INSTALL_PACKAGES[@]:-}"; do
+        for package_file in "${PACKAGE_REPO_DIR}/${package_name}-${PACKAGE_VERSION}-${PACKAGE_REL}-"*.pkg.tar.*; do
+            [[ -e "${package_file}" ]] || continue
+            cp -f "${package_file}" "${INSTALLER_DATA_DIR}/repo/"
+            copied_installer_package=true
+        done
+    done
+
+    if [[ "${copied_installer_package}" == true ]]; then
+        repo-add "${INSTALLER_DATA_DIR}/repo/${PACKAGE_REPO_NAME}.db.tar.gz" "${INSTALLER_DATA_DIR}/repo"/*.pkg.tar.*
+        sed -i \
+            "s|file:///work/${PACKAGE_REPO_DIR#./}|file:///usr/share/amethyne/installer/repo|g" \
+            "${INSTALLER_DATA_DIR}/pacman.conf"
+    fi
 fi
 
 if [[ -d "${AIROOTFS_DIR}" ]]; then
