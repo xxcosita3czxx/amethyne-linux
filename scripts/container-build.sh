@@ -202,7 +202,7 @@ fi
 build_local_packages
 
 echo "==> Preparing archiso profile: ${PROFILE_DIR}"
-rm -rf "${PROFILE_DIR}"
+rm -rf "${PROFILE_DIR}" "${WORK_DIR}"
 mkdir -p "${PROFILE_DIR}" "${WORK_DIR}" "${OUT_DIR}"
 
 if [[ ! -d "${ARCHISO_PROFILE_DIR}" ]]; then
@@ -264,7 +264,9 @@ if [[ "${HAVE_LOCAL_REPO}" == true ]]; then
 
     copied_installer_package=false
     for package_name in "${BASE_PACKAGES[@]}" "${INSTALL_PACKAGES[@]:-}"; do
-        for package_file in "${PACKAGE_REPO_DIR}/${package_name}-${PACKAGE_VERSION}-${PACKAGE_REL}-"*.pkg.tar.*; do
+        # Local/AUR packages may have their own upstream version/pkgrel/arch, so
+        # match by package name instead of the Amethyne package version.
+        for package_file in "${PACKAGE_REPO_DIR}/${package_name}-"*.pkg.tar.*; do
             [[ -e "${package_file}" ]] || continue
             cp -f "${package_file}" "${INSTALLER_DATA_DIR}/repo/"
             copied_installer_package=true
@@ -291,7 +293,10 @@ echo "==> Running mkarchiso"
 mkarchiso -v -w "${WORK_DIR}" -o "${OUT_DIR}" "${PROFILE_DIR}"
 
 if [[ -n "${HOST_UID:-}" && -n "${HOST_GID:-}" ]]; then
-    chown -R "${HOST_UID}:${HOST_GID}" ./.build ./work ./out ./packages/*/build ./packages/*/dist ./packages/*/packages || true
+    # Do not chown ./work: mkarchiso may reuse it, and host UID ownership inside
+    # the airootfs can leak into later ISO builds. clean.sh handles root-owned
+    # work cleanup through Docker when needed.
+    chown -R "${HOST_UID}:${HOST_GID}" ./.build ./out ./packages/*/build ./packages/*/dist ./packages/*/packages || true
 fi
 
 echo "==> Done. ISO output: ${OUT_DIR}"

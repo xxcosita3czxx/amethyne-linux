@@ -1,8 +1,8 @@
 [package]
-name = "bibata-cursor-theme"
+name = "bibata-cursor-theme-bin"
 type = "aur"
-description = "Material-based Bibata cursor themes"
-url = "https://aur.archlinux.org/bibata-cursor-theme.git"
+description = "Material-based Bibata cursor themes from upstream binary release"
+url = "https://aur.archlinux.org/bibata-cursor-theme-bin.git"
 arch = "any"
 license = "GPL-3.0-or-later"
 dependencies = []

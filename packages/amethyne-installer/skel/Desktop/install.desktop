@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=Install Amethyne
+Comment=Start the Amethyne Linux installer
+Icon=system-software-install
+Exec=notify-send "Amethyne Installer" "The graphical installer is not implemented yet."
+Terminal=false
+Categories=System;

@@ -4,9 +4,17 @@ from __future__ import annotations
 
 import itertools
 import os
+from ctypes import CDLL
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
+
+# gtk4-layer-shell needs to be linked before libwayland-client is pulled in by
+# GTK/GDK, otherwise the GI binding can load but report layer-shell unsupported.
+try:
+    CDLL("libgtk4-layer-shell.so")
+except OSError:
+    pass
 
 import gi
 
@@ -21,6 +29,10 @@ except ValueError:
     LayerShell = None
 
 USE_LAYER_SHELL = False
+CSS_PATHS = [
+    Path("/usr/share/amethyne/notification-daemon/style.gtk.css"),
+    Path(__file__).with_name("style.gtk.css"),
+]
 
 
 def configure_layer_shell_mode() -> str:
@@ -108,7 +120,7 @@ class Notification:
     expire_timeout: int
 
 
-class NotificationWindow(Gtk.ApplicationWindow):
+class NotificationWindow(Gtk.Window):
     def __init__(self, daemon: NotificationDaemon, notification: Notification) -> None:
         super().__init__(application=daemon.app)
         self.daemon = daemon
@@ -418,12 +430,11 @@ class NotificationDaemon:
 
 
 def load_css() -> None:
-    css_provider = Gtk.CssProvider()
-    css_path = Path(__file__).with_name("style.gtk.css")
-
-    if not css_path.is_file():
+    css_path = next((path for path in CSS_PATHS if path.is_file()), None)
+    if css_path is None:
         return
 
+    css_provider = Gtk.CssProvider()
     css_provider.load_from_path(str(css_path))
     display = Gdk.Display.get_default()
     if display is not None:

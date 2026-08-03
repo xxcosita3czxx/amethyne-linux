@@ -48,6 +48,7 @@ local menu        = "fuzzel"
 --
 hl.on("hyprland.start", function ()
   hl.exec_cmd("hyprpaper")
+  hl.exec_cmd("amethyne-desktop")
   hl.exec_cmd("nm-applet")
   hl.exec_cmd("waybar")
   hl.exec_cmd("amethyne-notification-daemon")
@@ -60,6 +61,7 @@ end)
 
 -- See https://wiki.hypr.land/Configuring/Advanced-and-Cool/Environment-variables/
 
+hl.env("XCURSOR_THEME", "Bibata-Modern-Classic")
 hl.env("XCURSOR_SIZE", "24")
 hl.env("HYPRCURSOR_SIZE", "24")
 hl.env("GDK_BACKEND", "wayland")
@@ -74,11 +76,17 @@ hl.env("GDK_BACKEND", "wayland")
 
 hl.config({
   ecosystem = {
-    enforce_permissions = true,
+    -- Keep this disabled until Amethyne has a complete permission policy for
+    -- its own layer-shell components. When enabled, Hyprland can hide privileged
+    -- Wayland globals such as layer-shell from clients that are not explicitly
+    -- allowed, which makes gtk4-layer-shell report the compositor as unsupported.
+    enforce_permissions = false,
   },
 })
 
 -- hl.permission("/usr/(bin|local/bin)/grim", "screencopy", "allow")
+-- hl.permission("/usr/bin/amethyne-desktop", "layer-shell", "allow")
+-- hl.permission("/usr/bin/amethyne-notification-daemon", "layer-shell", "allow")
 hl.permission("/usr/(lib|libexec|lib64)/xdg-desktop-portal-hyprland", "screencopy", "allow")
 -- hl.permission("/usr/(bin|local/bin)/hyprpm", "plugin", "allow")
 
@@ -93,7 +101,7 @@ hl.config({
         gaps_in  = 5,
         gaps_out = 20,
 
-        border_size = 1.5,
+        border_size = 2,
 
         col = {
             active_border   = "rgba(800080ee)",

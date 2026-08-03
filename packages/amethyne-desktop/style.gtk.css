@@ -1,0 +1,47 @@
+.amethyne-desktop {
+  background: transparent;
+}
+
+.desktop-icon {
+  min-width: 78px;
+  min-height: 82px;
+  padding: 10px 8px;
+  border-radius: 16px;
+  background: transparent;
+  color: #f2f2f7;
+  border: 1px solid transparent;
+  box-shadow: none;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.55);
+}
+
+.desktop-icon:hover {
+  background: rgba(255, 255, 255, 0.10);
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+.desktop-icon:active,
+.desktop-icon.selected {
+  background: rgba(139, 92, 246, 0.25);
+  border-color: rgba(139, 92, 246, 0.35);
+}
+
+.desktop-icon.selected:hover {
+  background: rgba(139, 92, 246, 0.32);
+  border-color: rgba(139, 92, 246, 0.45);
+}
+
+.desktop-icon image {
+  color: #ffffff;
+  -gtk-icon-shadow: 0 1px 3px rgba(0, 0, 0, 0.55);
+}
+
+.desktop-icon label {
+  font: 10pt "Inter";
+  font-weight: 600;
+}
+
+.selection-rectangle {
+  background: rgba(139, 92, 246, 0.18);
+  border: 1px solid rgba(139, 92, 246, 0.55);
+  border-radius: 6px;
+}

@@ -16,7 +16,7 @@ _UI_PACKAGES=(
     amethyne-desktop
     amethyne-settings
     amethyne-gtk-theme
-    bibata-cursor-theme
+    bibata-cursor-theme-bin
     amethyne-notification-daemon
     hyprland
     hyprpaper
@@ -47,6 +47,11 @@ _VM_PACKAGES=(
     spice-vdagent
 )
 
+_TEST_PACKAGES=(
+    gtk3-demos
+    gtk4-demos
+)
+
 # Packages shared by the live ISO and the installed system.
 BASE_PACKAGES=(
     base
@@ -59,6 +64,7 @@ BASE_PACKAGES=(
     sudo
     nano
     "${_UI_PACKAGES[@]}"
+    "${_TEST_PACKAGES[@]}"
 )
 
 # Packages only needed in the live ISO.

@@ -1,8 +1,27 @@
 [package]
 name = "amethyne-desktop"
-type = "stub"
-description = "Desktop icon layer placeholder package for Amethyne Linux"
+app_name = "amethyne-desktop"
+description = "Desktop icon layer for Amethyne Linux"
 url = "https://github.com/cosita3cz/amethyne-linux"
 arch = "x86_64"
 license = "custom"
-dependencies = []
+entrypoint = "main.py"
+dependencies = ["gtk4", "gtk4-layer-shell", "python-gobject", "xdg-utils", "libnotify"]
+
+[pyinstaller]
+windowed = true
+onefile = true
+add_data = ["style.gtk.css:."]
+hidden_imports = [
+  "gi",
+  "gi.repository.Gtk",
+  "gi.repository.Gdk",
+  "gi.repository.Gio",
+  "gi.repository.GLib",
+  "gi.repository.Gtk4LayerShell",
+]
+
+[[install]]
+source = "style.gtk.css"
+target = "/usr/share/amethyne/desktop/style.gtk.css"
+mode = "0644"

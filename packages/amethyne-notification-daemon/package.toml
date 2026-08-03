@@ -15,7 +15,13 @@ add_data = ["style.gtk.css:."]
 hidden_imports = [
   "gi",
   "gi.repository.Gtk",
+  "gi.repository.Gdk",
   "gi.repository.Gio",
   "gi.repository.GLib",
   "gi.repository.Gtk4LayerShell",
 ]
+
+[[install]]
+source = "style.gtk.css"
+target = "/usr/share/amethyne/notification-daemon/style.gtk.css"
+mode = "0644"
