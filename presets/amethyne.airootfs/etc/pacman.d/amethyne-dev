@@ -1,0 +1,3 @@
+## Amethyne development repository served from the host on libvirt NAT.
+## Start it on the host with: ./build.sh --repo
+Server = http://192.168.122.1:8080

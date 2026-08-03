@@ -879,8 +879,9 @@ class DesktopWindow(Gtk.ApplicationWindow):
             return (0, 0, 0, 0)
 
         values = [max(0, int(value)) for value in reserved]
-        # Hyprland has used top/bottom/left/right for addreserved-style data.
-        return (values[0], values[3], values[1], values[2])
+        # Hyprland reports monitor reservations as left/top/right/bottom.
+        # Internally we keep top/right/bottom/left.
+        return (values[1], values[2], values[3], values[0])
 
     def _layer_reserved_margins(
         self,
@@ -900,6 +901,10 @@ class DesktopWindow(Gtk.ApplicationWindow):
 
         top = right = bottom = left = 0
         for layer in self._iter_layer_surfaces(monitor_layers):
+            namespace = str(layer.get("namespace", ""))
+            if namespace in {"amethyne-desktop", "hyprpaper"}:
+                continue
+
             geometry = layer.get("geometry")
             if not isinstance(geometry, dict):
                 continue
@@ -911,8 +916,11 @@ class DesktopWindow(Gtk.ApplicationWindow):
             if width <= 0 or height <= 0:
                 continue
 
-            exclusive_zone = max(0, int(layer.get("exclusiveZone", layer.get("exclusive", 0)) or 0))
             threshold = 8
+            if width >= monitor_width - threshold and height >= monitor_height - threshold:
+                continue
+
+            exclusive_zone = max(0, int(layer.get("exclusiveZone", layer.get("exclusive", 0)) or 0))
             is_horizontal = width >= height
             if is_horizontal:
                 if y <= monitor_y + threshold:

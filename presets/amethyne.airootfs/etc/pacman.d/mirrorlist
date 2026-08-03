@@ -1,0 +1,2 @@
+## Amethyne default Arch Linux mirror
+Server = https://geo.mirror.pkgbuild.com/$repo/os/$arch

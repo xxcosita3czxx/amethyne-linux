@@ -1,0 +1,11 @@
+NAME="Amethyne Linux"
+PRETTY_NAME="Amethyne Linux"
+ID=amethyne
+ID_LIKE=arch
+BUILD_ID=rolling
+ANSI_COLOR="1;35"
+HOME_URL="https://github.com/cosita3cz/amethyne-linux"
+DOCUMENTATION_URL="https://github.com/cosita3cz/amethyne-linux"
+SUPPORT_URL="https://github.com/cosita3cz/amethyne-linux"
+BUG_REPORT_URL="https://github.com/cosita3cz/amethyne-linux/issues"
+LOGO=amethyne
