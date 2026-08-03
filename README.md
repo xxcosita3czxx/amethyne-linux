@@ -22,6 +22,74 @@ Set package version/release used for local packages:
 ./build.sh --package-version 0.2.0 --package-rel 1 --rebuild-packages
 ```
 
+## Development package repo
+
+Build/collect local packages into a pacman repository and serve it over HTTP:
+
+```bash
+./build.sh --repo
+```
+
+Force rebuild all local packages before serving:
+
+```bash
+./build.sh --repo --rebuild-packages
+```
+
+Use a custom bind address or port:
+
+```bash
+./build.sh --repo --repo-port 8081
+```
+
+For a libvirt/virt-manager NAT guest, add this above `[core]`/`[extra]` in `/etc/pacman.conf` inside the VM:
+
+```ini
+[amethyne-dev]
+SigLevel = Optional TrustAll
+Server = http://192.168.122.1:8080
+```
+
+Then update packages inside the VM without rebuilding the ISO:
+
+```bash
+sudo pacman -Sy amethyne-desktop
+```
+
+In repo mode, package rebuilds automatically bump the Arch package release suffix while keeping the version you set:
+
+```text
+0.1.0-1
+0.1.0-2
+0.1.0-3
+```
+
+So this is usually enough during development:
+
+```bash
+./build.sh --repo --rebuild-packages
+```
+
+Set real package versions independently in each package's `package.toml`:
+
+```toml
+[package]
+name = "amethyne-desktop"
+version = "0.2.0"
+```
+
+You can still override every local package version for one build if needed:
+
+```bash
+./build.sh --repo --rebuild-packages --package-version 0.2.0
+```
+
+You can still override the package release manually when needed:
+
+```bash
+./build.sh --repo --rebuild-packages --package-rel 42
+```
+
 ## Package builder
 
 Python app packages are built through the shared root builder:

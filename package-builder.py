@@ -43,6 +43,7 @@ class InstallEntry:
 class PackageConfig:
     root: Path
     name: str
+    version: str
     package_type: str
     app_name: str
     description: str
@@ -132,6 +133,7 @@ def read_config(package_root: Path) -> PackageConfig:
     return PackageConfig(
         root=package_root,
         name=package["name"],
+        version=package.get("version", "0.1.0"),
         package_type=package.get("type", "python-app"),
         app_name=package.get("app_name", package["name"]),
         description=package["description"],
@@ -551,6 +553,7 @@ def resolve_package(package_arg: str) -> Path:
 
 def build_package(args: argparse.Namespace) -> Path:
     config = read_config(resolve_package(args.package))
+    version = args.version or config.version
 
     if args.clean:
         clean(config)
@@ -565,7 +568,7 @@ def build_package(args: argparse.Namespace) -> Path:
     makepkg = shutil.which("makepkg")
     if makepkg and is_arch_like_host() and not args.direct:
         print("Arch-like host detected; building package with makepkg")
-        return build_with_makepkg(config, args.version, args.pkgrel)
+        return build_with_makepkg(config, version, args.pkgrel)
 
     if makepkg and not is_arch_like_host():
         print("makepkg found, but host is not Arch-like; using direct packaging")
@@ -574,13 +577,13 @@ def build_package(args: argparse.Namespace) -> Path:
     else:
         print("makepkg not found; building package directly")
 
-    return build_direct_package(config, args.version, args.pkgrel, args.packager)
+    return build_direct_package(config, version, args.pkgrel, args.packager)
 
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Build Amethyne Python app packages.")
     parser.add_argument("package", help="Package name under packages/ or path to package directory.")
-    parser.add_argument("--version", default="0.1.0", help="Package version. Default: 0.1.0")
+    parser.add_argument("--version", default=None, help="Override package version. Defaults to package.version in package.toml, or 0.1.0 if omitted there.")
     parser.add_argument("--pkgrel", default="1", help="Package release number. Default: 1")
     parser.add_argument(
         "--packager",

@@ -5,8 +5,9 @@ cd /work
 
 PRESET_PREFIX="${PRESET_PREFIX:-amethyne}"
 FORCE_REBUILD_PACKAGES="${FORCE_REBUILD_PACKAGES:-false}"
-PACKAGE_VERSION="${PACKAGE_VERSION:-0.1.0}"
+PACKAGE_VERSION="${PACKAGE_VERSION:-}"
 PACKAGE_REL="${PACKAGE_REL:-1}"
+BUILD_REPO_ONLY="${BUILD_REPO_ONLY:-false}"
 PRESET_FILE="./presets/${PRESET_PREFIX}.preset.sh"
 ARCHISO_PROFILE_DIR="./presets/${PRESET_PREFIX}.archiso"
 AIROOTFS_DIR="./presets/${PRESET_PREFIX}.airootfs"
@@ -14,7 +15,7 @@ BUILD_ROOT="./.build/${PRESET_PREFIX}"
 PROFILE_DIR="${BUILD_ROOT}/profile"
 WORK_DIR="./work/${PRESET_PREFIX}"
 OUT_DIR="./out/${PRESET_PREFIX}"
-PACKAGE_REPO_NAME="amethyne-local"
+PACKAGE_REPO_NAME="amethyne-dev"
 PACKAGE_REPO_DIR="${BUILD_ROOT}/package-repo"
 HAVE_LOCAL_REPO=false
 
@@ -71,6 +72,7 @@ build_local_packages() {
     local package_name
     local package_arch
     local package_type
+    local package_version
     local package_url
     local package_glob
     local package_file
@@ -95,6 +97,7 @@ build_local_packages() {
         package_name="$(read_package_field "$package_config" name)"
         package_arch="$(read_package_field "$package_config" arch)"
         package_type="$(read_package_field "$package_config" type)"
+        package_version="${PACKAGE_VERSION:-$(read_package_field "$package_config" version)}"
         package_url="$(read_package_field "$package_config" url)"
 
         if [[ -z "$package_name" ]]; then
@@ -110,10 +113,14 @@ build_local_packages() {
             package_type="python-app"
         fi
 
+        if [[ -z "$package_version" ]]; then
+            package_version="0.1.0"
+        fi
+
         if [[ "$package_type" == "aur" ]]; then
             package_glob="${package_dir}/packages/${package_name}-*.pkg.tar.*"
         else
-            package_glob="${package_dir}/packages/${package_name}-${PACKAGE_VERSION}-${PACKAGE_REL}-${package_arch}.pkg.tar.*"
+            package_glob="${package_dir}/packages/${package_name}-${package_version}-${PACKAGE_REL}-${package_arch}.pkg.tar.*"
         fi
 
         should_build=false
@@ -144,7 +151,7 @@ build_local_packages() {
             else
                 ./package-builder.py \
                     "${package_basename}" \
-                    --version "${PACKAGE_VERSION}" \
+                    --version "${package_version}" \
                     --pkgrel "${PACKAGE_REL}" \
                     --direct \
                     --clean
@@ -200,6 +207,14 @@ if ! declare -p INSTALL_PACKAGES >/dev/null 2>&1; then
 fi
 
 build_local_packages
+
+if [[ "${BUILD_REPO_ONLY}" == true ]]; then
+    if [[ -n "${HOST_UID:-}" && -n "${HOST_GID:-}" ]]; then
+        chown -R "${HOST_UID}:${HOST_GID}" ./.build ./packages/*/build ./packages/*/dist ./packages/*/packages || true
+    fi
+    echo "==> Done. Package repository output: ${PACKAGE_REPO_DIR}"
+    exit 0
+fi
 
 echo "==> Preparing archiso profile: ${PROFILE_DIR}"
 rm -rf "${PROFILE_DIR}" "${WORK_DIR}"

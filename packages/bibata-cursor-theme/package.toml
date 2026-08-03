@@ -1,5 +1,6 @@
 [package]
 name = "bibata-cursor-theme-bin"
+version = "0.1.0"
 type = "aur"
 description = "Material-based Bibata cursor themes from upstream binary release"
 url = "https://aur.archlinux.org/bibata-cursor-theme-bin.git"

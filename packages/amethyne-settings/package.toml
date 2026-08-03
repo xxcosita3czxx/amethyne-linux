@@ -1,5 +1,6 @@
 [package]
 name = "amethyne-settings"
+version = "0.1.0"
 app_name = "amethyne-settings"
 description = "Settings application for Amethyne Linux"
 url = "https://github.com/cosita3cz/amethyne-linux"

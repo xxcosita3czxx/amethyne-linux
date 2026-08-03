@@ -47,7 +47,7 @@ _VM_PACKAGES=(
     spice-vdagent
 )
 
-_TEST_PACKAGES=(
+_DEV_PACKAGES=(
     gtk3-demos
     gtk4-demos
 )
@@ -64,7 +64,7 @@ BASE_PACKAGES=(
     sudo
     nano
     "${_UI_PACKAGES[@]}"
-    "${_TEST_PACKAGES[@]}"
+    "${_DEV_PACKAGES[@]}"
 )
 
 # Packages only needed in the live ISO.
@@ -93,9 +93,9 @@ SigLevel = Required DatabaseOptional
 LocalFileSigLevel = Optional
 
 [core]
-Include = /etc/pacman.d/mirrorlist
+Server = https://geo.mirror.pkgbuild.com/$repo/os/$arch
 
 [extra]
-Include = /etc/pacman.d/mirrorlist
+Server = https://geo.mirror.pkgbuild.com/$repo/os/$arch
 EOF
 )

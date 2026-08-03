@@ -118,6 +118,7 @@ Useful flags:
 ```toml
 [package]
 name = "example-app"
+version = "0.1.0"
 type = "python-app"
 app_name = "example-app"
 description = "Example application for Amethyne Linux"
@@ -156,6 +157,7 @@ Required unless noted:
 | Key | Meaning |
 | --- | --- |
 | `name` | Pacman package name. Example: `amethyne-settings`. |
+| `version` | Package version. Required; defaults to `0.1.0`. `./build.sh --package-version` can override this globally for a build. |
 | `type` | Package build type. Optional; defaults to `python-app`. Use `stub` for metadata-only placeholder packages. |
 | `app_name` | Installed executable name. Defaults to `name` if omitted. Not used by `stub` packages. |
 | `description` | Package description used in `pkgdesc` and `.PKGINFO`. |

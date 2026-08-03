@@ -1,5 +1,6 @@
 [package]
 name = "amethyne-desktop"
+version = "0.1.0"
 app_name = "amethyne-desktop"
 description = "Desktop icon layer for Amethyne Linux"
 url = "https://github.com/cosita3cz/amethyne-linux"

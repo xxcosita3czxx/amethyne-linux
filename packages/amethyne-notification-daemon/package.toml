@@ -1,5 +1,6 @@
 [package]
 name = "amethyne-notification-daemon"
+version = "0.1.0"
 app_name = "amethyne-notification-daemon"
 description = "Notification daemon for Amethyne Linux"
 url = "https://github.com/cosita3cz/amethyne-linux"

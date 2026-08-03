@@ -1,5 +1,6 @@
 [package]
 name = "amethyne-installer"
+version = "0.1.0"
 type = "files"
 description = "Installer placeholder package for Amethyne Linux"
 url = "https://github.com/cosita3cz/amethyne-linux"

@@ -1,5 +1,6 @@
 [package]
 name = "amethyne-gtk-theme"
+version = "0.1.0"
 type = "files"
 description = "GTK theme and visual defaults for Amethyne Linux"
 url = "https://github.com/cosita3cz/amethyne-linux"

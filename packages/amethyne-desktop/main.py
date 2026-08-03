@@ -1,9 +1,8 @@
-#!/usr/bin/env python3
-
 from __future__ import annotations
 
 import json
 import os
+import shutil
 import subprocess
 from ctypes import CDLL
 from dataclasses import dataclass
@@ -44,10 +43,10 @@ DEBUG = os.environ.get("AMETHYNE_DESKTOP_DEBUG") == "1"
 
 @dataclass(frozen=True)
 class DesktopConfig:
-    padding_top: int = 28
-    padding_right: int = 28
-    padding_bottom: int = 28
-    padding_left: int = 28
+    padding_top: int = 30
+    padding_right: int = 30
+    padding_bottom: int = 30
+    padding_left: int = 30
     grid_width: int = 110
     grid_height: int = 122
     icon_width: int = 96
@@ -102,7 +101,8 @@ class DesktopWindow(Gtk.ApplicationWindow):
 
         self.set_title("Amethyne Desktop")
         self.set_decorated(False)
-        self.set_resizable(False)
+        self.set_resizable(True)
+        self.set_default_size(1920, 1080)
         self.add_css_class("amethyne-desktop")
 
         self.canvas = Gtk.Fixed()
@@ -124,6 +124,9 @@ class DesktopWindow(Gtk.ApplicationWindow):
         pointer_motion.connect("motion", self._on_canvas_motion)
         self.canvas.add_controller(pointer_motion)
 
+        self._add_desktop_drop_targets(self)
+        self._add_desktop_drop_targets(self.canvas)
+
         self._configure_layer_shell()
         self.set_child(self.canvas)
         self._setup_desktop_monitor()
@@ -133,7 +136,8 @@ class DesktopWindow(Gtk.ApplicationWindow):
 
     def _configure_layer_shell(self) -> None:
         if LayerShell is None or not LayerShell.is_supported():
-            print("amethyne-desktop: layer-shell unavailable, using normal window fallback", flush=True)
+            print("amethyne-desktop: layer-shell unavailable, using fullscreen window fallback", flush=True)
+            self.fullscreen()
             return
 
         LayerShell.init_for_window(self)
@@ -346,6 +350,120 @@ class DesktopWindow(Gtk.ApplicationWindow):
         root.add_controller(click)
 
         return root
+
+    def _add_desktop_drop_targets(self, widget: Gtk.Widget) -> None:
+        if hasattr(Gdk, "FileList"):
+            file_list_target = Gtk.DropTarget.new(Gdk.FileList, Gdk.DragAction.COPY | Gdk.DragAction.MOVE)
+            file_list_target.connect("drop", self._on_desktop_file_list_drop)
+            widget.add_controller(file_list_target)
+
+        file_target = Gtk.DropTarget.new(Gio.File, Gdk.DragAction.COPY | Gdk.DragAction.MOVE)
+        file_target.connect("drop", self._on_desktop_file_drop)
+        widget.add_controller(file_target)
+
+        uri_target = Gtk.DropTarget.new(str, Gdk.DragAction.COPY)
+        uri_target.connect("drop", self._on_desktop_uri_drop)
+        widget.add_controller(uri_target)
+
+
+
+    def _on_desktop_file_list_drop(
+        self,
+        _target: Gtk.DropTarget,
+        value: Gdk.FileList,
+        x: float,
+        y: float,
+    ) -> bool:
+        return self._handle_dropped_files(list(value.get_files()), int(x), int(y))
+
+    def _on_desktop_file_drop(
+        self,
+        _target: Gtk.DropTarget,
+        value: Gio.File,
+        x: float,
+        y: float,
+    ) -> bool:
+        return self._handle_dropped_files([value], int(x), int(y))
+
+    def _on_desktop_uri_drop(
+        self,
+        _target: Gtk.DropTarget,
+        value: str,
+        x: float,
+        y: float,
+    ) -> bool:
+        files = [
+            Gio.File.new_for_uri(line.strip())
+            for line in value.splitlines()
+            if line.strip() and not line.startswith("#")
+        ]
+        return self._handle_dropped_files(files, int(x), int(y))
+
+    def _handle_dropped_files(self, files: list[Gio.File], x: int, y: int) -> bool:
+        if not files:
+            return False
+
+        copied_paths: list[Path] = []
+        for file in files:
+            copied_path = self._copy_file_to_desktop(file)
+            if copied_path is not None:
+                copied_paths.append(copied_path)
+
+        if not copied_paths:
+            return False
+
+        occupied = self._occupied_grid_positions()
+        grid_x, grid_y = self._pixels_to_grid(x, y)
+        for path in copied_paths:
+            grid_x, grid_y = self._next_free_grid_position(grid_x, grid_y, occupied)
+            occupied.add((grid_x, grid_y))
+            self.positions[f"file:{path.name}"] = {"grid_x": grid_x, "grid_y": grid_y}
+
+        self._save_positions()
+        GLib.idle_add(self._refresh_icons)
+        return True
+
+
+
+    def _copy_file_to_desktop(self, file: Gio.File) -> Path | None:
+        source_path = file.get_path()
+        if source_path is None:
+            print(f"amethyne-desktop: cannot copy non-local drop URI: {file.get_uri()}", flush=True)
+            return None
+
+        source = Path(source_path)
+        if not source.exists():
+            print(f"amethyne-desktop: dropped file does not exist: {source}", flush=True)
+            return None
+
+        DESKTOP_DIR.mkdir(parents=True, exist_ok=True)
+        destination = self._unique_desktop_path(source.name)
+        try:
+            if source.resolve() == destination.resolve():
+                return destination
+            if source.is_dir():
+                shutil.copytree(source, destination, symlinks=True)
+            else:
+                shutil.copy2(source, destination)
+        except OSError as error:
+            print(f"amethyne-desktop: failed to copy {source} to desktop: {error}", flush=True)
+            return None
+
+        return destination
+
+    def _unique_desktop_path(self, name: str) -> Path:
+        destination = DESKTOP_DIR / name
+        if not destination.exists():
+            return destination
+
+        stem = destination.stem
+        suffix = destination.suffix
+        counter = 1
+        while True:
+            candidate = DESKTOP_DIR / f"{stem} ({counter}){suffix}"
+            if not candidate.exists():
+                return candidate
+            counter += 1
 
     def _on_icon_click_pressed(
         self,
@@ -594,10 +712,33 @@ class DesktopWindow(Gtk.ApplicationWindow):
     def _update_reserved_margins(self) -> None:
         margins = self._hyprland_reserved_margins()
         if margins == self.reserved_margins:
+            self._apply_full_desktop_size()
             return
 
         self.reserved_margins = margins
+        self._apply_full_desktop_size()
         self._layout_icons()
+
+    def _apply_full_desktop_size(self) -> None:
+        width, height = self.monitor_size or self._default_monitor_size()
+        if width <= 0 or height <= 0:
+            return
+
+        self.set_default_size(width, height)
+        self.canvas.set_size_request(width, height)
+
+    def _default_monitor_size(self) -> tuple[int, int]:
+        display = Gdk.Display.get_default()
+        if display is None:
+            return (1920, 1080)
+
+        monitors = display.get_monitors()
+        monitor = monitors.get_item(0) if monitors.get_n_items() > 0 else None
+        if monitor is None:
+            return (1920, 1080)
+
+        geometry = monitor.get_geometry()
+        return (geometry.width, geometry.height)
 
     def _layout_icons(self) -> None:
         occupied: set[tuple[int, int]] = set()
@@ -759,10 +900,6 @@ class DesktopWindow(Gtk.ApplicationWindow):
 
         top = right = bottom = left = 0
         for layer in self._iter_layer_surfaces(monitor_layers):
-            exclusive_zone = int(layer.get("exclusiveZone", layer.get("exclusive", 0)) or 0)
-            if exclusive_zone <= 0:
-                continue
-
             geometry = layer.get("geometry")
             if not isinstance(geometry, dict):
                 continue
@@ -774,6 +911,7 @@ class DesktopWindow(Gtk.ApplicationWindow):
             if width <= 0 or height <= 0:
                 continue
 
+            exclusive_zone = max(0, int(layer.get("exclusiveZone", layer.get("exclusive", 0)) or 0))
             threshold = 8
             is_horizontal = width >= height
             if is_horizontal:
