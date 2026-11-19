@@ -1,96 +1,34 @@
 @import url("resource:///org/gtk/libgtk/theme/Default/gtk.css");
 
-@define-color theme_bg_color #f7f7fb;
-@define-color theme_fg_color #1f1f29;
-@define-color theme_base_color #ffffff;
-@define-color theme_text_color #1f1f29;
-@define-color theme_selected_bg_color #7c3aed;
-@define-color theme_selected_fg_color #ffffff;
-@define-color borders rgba(31, 31, 41, 0.12);
-@define-color insensitive_fg_color rgba(31, 31, 41, 0.45);
-@define-color warning_color #b45309;
+/* Amethyne Light */
+@define-color window_bg_color #f8f7fb;
+@define-color window_fg_color #211c27;
+@define-color view_bg_color #ffffff;
+@define-color view_fg_color #211c27;
+@define-color card_bg_color #ffffff;
+@define-color headerbar_bg_color #f1eef6;
+@define-color headerbar_fg_color #211c27;
+@define-color sidebar_bg_color #f3f0f8;
+@define-color button_bg_color #ffffff;
+@define-color button_fg_color #211c27;
+@define-color button_hover_bg_color #f0ebf7;
+@define-color button_active_bg_color #e6ddf1;
+@define-color border_color rgba(33, 28, 39, 0.14);
+@define-color accent_color #8b5cf6;
+@define-color accent_bg_color #8b5cf6;
+@define-color accent_fg_color #ffffff;
+@define-color switch_bg_color #d8d0e2;
+@define-color switch_slider_color #ffffff;
+@define-color trough_bg_color #d8d0e2;
+@define-color slider_color #ffffff;
+@define-color scrollbar_color #b7a9c9;
+@define-color scrollbar_hover_color #9b86b7;
+@define-color tooltip_bg_color #211c27;
+@define-color tooltip_fg_color #ffffff;
 @define-color error_color #dc2626;
+@define-color error_bg_color #dc2626;
+@define-color error_fg_color #ffffff;
+@define-color warning_color #b45309;
 @define-color success_color #16a34a;
 
-window,
-.background {
-    background: @theme_bg_color;
-    color: @theme_fg_color;
-}
-
-.view,
-textview,
-listview,
-columnview,
-gridview {
-    background: @theme_bg_color;
-    color: @theme_fg_color;
-}
-
-headerbar,
-.titlebar,
-.toolbar {
-    background: shade(@theme_base_color, 0.98);
-    color: @theme_fg_color;
-    border-bottom: 1px solid @borders;
-}
-
-.sidebar {
-    background: shade(@theme_bg_color, 0.96);
-    color: @theme_fg_color;
-}
-
-.card,
-frame,
-popover,
-dialog {
-    background: @theme_base_color;
-    color: @theme_fg_color;
-    border: 1px solid @borders;
-    border-radius: 16px;
-}
-
-button {
-    border-radius: 16px;
-}
-
-button.suggested-action {
-    background: @theme_selected_bg_color;
-    color: @theme_selected_fg_color;
-}
-
-button.destructive-action {
-    background: @error_color;
-    color: #ffffff;
-}
-
-entry,
-searchentry,
-spinbutton,
-combobox,
-dropdown {
-    border-radius: 16px;
-}
-
-row:selected,
-.view:selected,
-*:selected {
-    background: alpha(@theme_selected_bg_color, 0.18);
-    color: @theme_fg_color;
-}
-
-.dim-label {
-    opacity: 0.65;
-}
-
-.error {
-    color: @error_color;
-}
-
-.warning {
-    color: @warning_color;
-}
-
-.success {
-    color: @success_color;
-}
+@import url("gtk-common.css");

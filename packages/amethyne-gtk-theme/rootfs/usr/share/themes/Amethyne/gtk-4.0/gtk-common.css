@@ -1,0 +1,226 @@
+/* Amethyne GTK4 shared base
+ * Keep this file mostly structural. Light/dark colors live in gtk.css and
+ * gtk-dark.css so the dark variant stays the same theme with swapped colors.
+ */
+
+* {
+    outline-color: alpha(@accent_color, 0.45);
+    -gtk-outline-radius: 12px;
+}
+
+window,
+.background {
+    background: @window_bg_color;
+    color: @window_fg_color;
+}
+
+.view,
+textview,
+textview text,
+listview,
+columnview,
+gridview {
+    background: @view_bg_color;
+    color: @view_fg_color;
+}
+
+headerbar,
+.titlebar,
+.toolbar {
+    background: @headerbar_bg_color;
+    color: @headerbar_fg_color;
+    border-bottom: 1px solid @border_color;
+}
+
+.sidebar {
+    background: @sidebar_bg_color;
+    color: @window_fg_color;
+}
+
+.card,
+frame,
+popover,
+dialog,
+.menu {
+    background: @card_bg_color;
+    color: @window_fg_color;
+    border: 1px solid @border_color;
+    border-radius: 16px;
+}
+
+popover contents {
+    padding: 6px;
+}
+
+button {
+    border-radius: 12px;
+    padding: 6px 12px;
+    background: @button_bg_color;
+    color: @button_fg_color;
+    border-color: @border_color;
+}
+
+button:hover {
+    background: @button_hover_bg_color;
+}
+
+button:active,
+button:checked {
+    background: @button_active_bg_color;
+}
+
+button:disabled,
+entry:disabled,
+row:disabled {
+    opacity: 0.5;
+}
+
+button.flat {
+    background: transparent;
+    border-color: transparent;
+}
+
+button.suggested-action {
+    background: @accent_bg_color;
+    color: @accent_fg_color;
+    border-color: transparent;
+}
+
+button.suggested-action:hover {
+    background: shade(@accent_bg_color, 1.08);
+}
+
+button.destructive-action {
+    background: @error_bg_color;
+    color: @error_fg_color;
+    border-color: transparent;
+}
+
+entry,
+searchentry,
+spinbutton,
+combobox,
+dropdown {
+    border-radius: 12px;
+    background: @view_bg_color;
+    color: @view_fg_color;
+    border-color: @border_color;
+}
+
+entry:focus,
+searchentry:focus,
+spinbutton:focus {
+    border-color: @accent_color;
+}
+
+selection,
+*:selected,
+row:selected,
+.view:selected {
+    background: alpha(@accent_bg_color, 0.22);
+    color: @window_fg_color;
+}
+
+switch {
+    border-radius: 999px;
+    background: @switch_bg_color;
+}
+
+switch:checked {
+    background: @accent_bg_color;
+}
+
+switch slider {
+    border-radius: 999px;
+    background: @switch_slider_color;
+}
+
+checkbutton check,
+checkbox,
+radiobutton radio,
+radio {
+    border-color: @border_color;
+    background: @view_bg_color;
+}
+
+checkbutton check,
+checkbox {
+    border-radius: 6px;
+}
+
+radiobutton radio,
+radio {
+    border-radius: 999px;
+}
+
+checkbutton check:checked,
+checkbox:checked,
+radiobutton radio:checked,
+radio:checked {
+    background: @accent_bg_color;
+    color: @accent_fg_color;
+    border-color: transparent;
+}
+
+scale trough,
+progressbar trough {
+    border-radius: 999px;
+    background: @trough_bg_color;
+}
+
+scale highlight,
+progressbar progress {
+    border-radius: 999px;
+    background: @accent_bg_color;
+}
+
+scale slider {
+    border-radius: 999px;
+    background: @slider_color;
+    min-width: 18px;
+    min-height: 18px;
+}
+
+scrollbar {
+    background: transparent;
+}
+
+scrollbar slider {
+    border-radius: 999px;
+    background: @scrollbar_color;
+    min-width: 8px;
+    min-height: 8px;
+}
+
+scrollbar slider:hover {
+    background: @scrollbar_hover_color;
+}
+
+separator {
+    background: @border_color;
+    min-width: 1px;
+    min-height: 1px;
+}
+
+tooltip {
+    background: @tooltip_bg_color;
+    color: @tooltip_fg_color;
+    border-radius: 10px;
+    padding: 6px 10px;
+}
+
+.dim-label {
+    opacity: 0.65;
+}
+
+.error {
+    color: @error_color;
+}
+
+.warning {
+    color: @warning_color;
+}
+
+.success {
+    color: @success_color;
+}
