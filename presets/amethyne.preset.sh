@@ -34,35 +34,35 @@ _DRIVERS=(
     vulkan-intel
     vulkan-radeon
     vulkan-nouveau
-    vulkan-virtio
-    virglrenderer
     intel-media-driver
     xf86-video-amdgpu
     xf86-video-intel
     xf86-video-nouveau
-)
-
-_VM_PACKAGES=(
     qemu-guest-agent
     spice-vdagent
+    vulkan-virtio
+    virglrenderer
 )
 
 _DEV_PACKAGES=(
     gtk3-demos
     gtk4-demos
+    themix-full-git
 )
 
 # Packages shared by the live ISO and the installed system.
 BASE_PACKAGES=(
     base
+    chaotic-keyring
+    chaotic-mirrorlist
     linux-zen
     linux-firmware
     "${_DRIVERS[@]}"
-    "${_VM_PACKAGES[@]}"
     networkmanager
     libnotify
     sudo
     nano
+    less
     "${_UI_PACKAGES[@]}"
     "${_DEV_PACKAGES[@]}"
 )
@@ -79,12 +79,11 @@ LIVE_PACKAGES=(
 )
 
 # Packages only intended for the installed system.
-# The ISO builder does not consume this yet; your future installer can combine
-# BASE_PACKAGES + INSTALL_PACKAGES for the target system.
 INSTALL_PACKAGES=()
 
 PACMAN_CONF=$(cat <<'EOF'
 [options]
+ILoveCandy
 HoldPkg     = pacman glibc
 Architecture = auto
 CheckSpace
@@ -97,5 +96,8 @@ Server = https://geo.mirror.pkgbuild.com/$repo/os/$arch
 
 [extra]
 Server = https://geo.mirror.pkgbuild.com/$repo/os/$arch
+
+[chaotic-aur]
+Include = /etc/pacman.d/chaotic-mirrorlist
 EOF
 )

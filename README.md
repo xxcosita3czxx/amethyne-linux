@@ -36,6 +36,22 @@ Force rebuild all local packages before serving:
 ./build.sh --repo --rebuild-packages
 ```
 
+Rebuild and serve only one package:
+
+```bash
+./build.sh --repo --rebuild-packages --package amethyne-desktop
+```
+
+You can pass `--package` more than once to include multiple packages.
+
+Serve the dev repo and automatically refresh it when package source files change:
+
+```bash
+./build.sh --repo --watch --package amethyne-desktop
+```
+
+The watcher checks package sources every second by default. Build output directories (`build/`, `dist/`, `packages/`) are ignored.
+
 Use a custom bind address or port:
 
 ```bash

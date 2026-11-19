@@ -8,6 +8,7 @@ FORCE_REBUILD_PACKAGES="${FORCE_REBUILD_PACKAGES:-false}"
 PACKAGE_VERSION="${PACKAGE_VERSION:-}"
 PACKAGE_REL="${PACKAGE_REL:-1}"
 BUILD_REPO_ONLY="${BUILD_REPO_ONLY:-false}"
+PACKAGE_FILTERS="${PACKAGE_FILTERS:-}"
 PRESET_FILE="./presets/${PRESET_PREFIX}.preset.sh"
 ARCHISO_PROFILE_DIR="./presets/${PRESET_PREFIX}.archiso"
 AIROOTFS_DIR="./presets/${PRESET_PREFIX}.airootfs"
@@ -37,6 +38,29 @@ print(package.get(field, ""))
 PY
 }
 
+package_is_selected() {
+    local package_basename="$1"
+    local package_name="$2"
+    local filter
+
+    if [[ -z "${PACKAGE_FILTERS}" ]]; then
+        return 0
+    fi
+
+    for filter in ${PACKAGE_FILTERS}; do
+        if [[ "${filter}" == "${package_basename}" || "${filter}" == "${package_name}" ]]; then
+            return 0
+        fi
+    done
+
+    return 1
+}
+
+pacman_has_package() {
+    local package_name="$1"
+    pacman -Si "${package_name}" >/dev/null 2>&1
+}
+
 build_aur_package() {
     local package_name="$1"
     local package_url="$2"
@@ -52,6 +76,12 @@ build_aur_package() {
         useradd --create-home --shell /bin/bash amethyne-builder
     fi
 
+    install -d -m 0750 /etc/sudoers.d
+    cat > /etc/sudoers.d/99-amethyne-builder <<'EOF'
+amethyne-builder ALL=(ALL:ALL) NOPASSWD: /usr/bin/pacman
+EOF
+    chmod 0440 /etc/sudoers.d/99-amethyne-builder
+
     rm -rf "${package_dir}/build" "${package_dir}/packages"
     mkdir -p "${package_dir}/build" "${package_dir}/packages"
     chown -R amethyne-builder:amethyne-builder "${package_dir}/build" "${package_dir}/packages"
@@ -59,7 +89,7 @@ build_aur_package() {
     git clone --depth 1 "${package_url}" "${aur_build_dir}"
     chown -R amethyne-builder:amethyne-builder "${aur_build_dir}"
 
-    runuser -u amethyne-builder -- bash -lc "cd '${aur_build_dir}' && makepkg --force --clean --cleanbuild --nodeps --noconfirm"
+    runuser -u amethyne-builder -- bash -lc "cd '${aur_build_dir}' && makepkg --force --clean --cleanbuild --syncdeps --noconfirm"
 
     find "${aur_build_dir}" -maxdepth 1 -type f -name "${package_name}-*.pkg.tar.*" -exec cp -f {} "${package_dir}/packages/" \;
 }
@@ -76,6 +106,7 @@ build_local_packages() {
     local package_url
     local package_glob
     local package_file
+    local copied_package_count=0
 
     while IFS= read -r -d '' package_config; do
         package_configs+=("$package_config")
@@ -105,6 +136,10 @@ build_local_packages() {
             exit 1
         fi
 
+        if ! package_is_selected "${package_basename}" "${package_name}"; then
+            continue
+        fi
+
         if [[ -z "$package_arch" ]]; then
             package_arch="x86_64"
         fi
@@ -115,6 +150,11 @@ build_local_packages() {
 
         if [[ -z "$package_version" ]]; then
             package_version="0.1.0"
+        fi
+
+        if [[ "${package_type}" == "aur" && "${FORCE_REBUILD_PACKAGES}" != true ]] && pacman_has_package "${package_name}"; then
+            echo "==> Using repository package for AUR entry: ${package_name}"
+            continue
         fi
 
         if [[ "$package_type" == "aur" ]]; then
@@ -167,7 +207,18 @@ build_local_packages() {
 
         package_file="$(find "${package_dir}/packages" -maxdepth 1 -type f -name "$(basename "${package_glob}")" | sort | tail -n 1)"
         cp -f "${package_file}" "${PACKAGE_REPO_DIR}/"
+        copied_package_count=$((copied_package_count + 1))
     done
+
+    if [[ "${copied_package_count}" -eq 0 ]]; then
+        echo "==> No local package artifacts needed"
+        if [[ "${BUILD_REPO_ONLY}" == true ]]; then
+            tar -czf "${PACKAGE_REPO_DIR}/${PACKAGE_REPO_NAME}.db.tar.gz" --files-from /dev/null
+            ln -sfn "${PACKAGE_REPO_NAME}.db.tar.gz" "${PACKAGE_REPO_DIR}/${PACKAGE_REPO_NAME}.db"
+        fi
+        HAVE_LOCAL_REPO=false
+        return 0
+    fi
 
     echo "==> Creating pacman repo database: ${PACKAGE_REPO_NAME}"
     repo-add "${PACKAGE_REPO_DIR}/${PACKAGE_REPO_NAME}.db.tar.gz" "${PACKAGE_REPO_DIR}"/*.pkg.tar.*
