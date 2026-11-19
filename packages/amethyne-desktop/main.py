@@ -4,6 +4,7 @@ import json
 import os
 import shutil
 import subprocess
+import time
 from ctypes import CDLL
 from dataclasses import dataclass
 from pathlib import Path
@@ -37,16 +38,17 @@ DESKTOP_DIR = Path.home() / "Desktop"
 CONFIG_DIR = Path.home() / ".config" / "amethyne-desktop"
 CONFIG_PATH = CONFIG_DIR / "config.json"
 POSITIONS_PATH = CONFIG_DIR / "desktop-positions.json"
-RESERVED_AREA_POLL_SECONDS = 1
+RESERVED_AREA_POLL_MS = 250
+ICON_MOVE_ANIMATION_MS = 160
 DEBUG = os.environ.get("AMETHYNE_DESKTOP_DEBUG") == "1"
 
 
 @dataclass(frozen=True)
 class DesktopConfig:
-    padding_top: int = 30
-    padding_right: int = 30
-    padding_bottom: int = 30
-    padding_left: int = 30
+    padding_top: int = 20
+    padding_right: int = 20
+    padding_bottom: int = 20
+    padding_left: int = 20
     grid_width: int = 110
     grid_height: int = 122
     icon_width: int = 96
@@ -90,6 +92,7 @@ class DesktopWindow(Gtk.ApplicationWindow):
         self.monitor_size: tuple[int, int] | None = None
         self.selected_icon_ids: set[str] = set()
         self.icon_views: dict[str, IconView] = {}
+        self.icon_animation_sources: dict[str, int] = {}
         self.dragging_icon_id: str | None = None
         self.drag_pointer_offset: tuple[int, int] = (0, 0)
         self.drag_started = False
@@ -132,7 +135,7 @@ class DesktopWindow(Gtk.ApplicationWindow):
         self._setup_desktop_monitor()
         self._update_reserved_margins()
         self._refresh_icons()
-        GLib.timeout_add_seconds(RESERVED_AREA_POLL_SECONDS, self._poll_reserved_margins)
+        GLib.timeout_add(RESERVED_AREA_POLL_MS, self._poll_reserved_margins)
 
     def _configure_layer_shell(self) -> None:
         if LayerShell is None or not LayerShell.is_supported():
@@ -189,7 +192,7 @@ class DesktopWindow(Gtk.ApplicationWindow):
             self.icon_views[icon.id] = IconView(icon=icon, widget=widget, grid_x=grid_x, grid_y=grid_y)
             self.canvas.put(widget, 0.0, 0.0)
 
-        self._layout_icons()
+        self._layout_icons(animate=False)
         self._save_positions()
         return GLib.SOURCE_REMOVE
 
@@ -682,6 +685,7 @@ class DesktopWindow(Gtk.ApplicationWindow):
 
     def _begin_selected_drag(self) -> None:
         for view in self._selected_views():
+            self._cancel_icon_animation(view.icon.id)
             view.drag_origin_grid_x = view.grid_x
             view.drag_origin_grid_y = view.grid_y
             view.drag_origin_pixel_x = view.pixel_x
@@ -717,7 +721,7 @@ class DesktopWindow(Gtk.ApplicationWindow):
 
         self.reserved_margins = margins
         self._apply_full_desktop_size()
-        self._layout_icons()
+        self._layout_icons(animate=True)
 
     def _apply_full_desktop_size(self) -> None:
         width, height = self.monitor_size or self._default_monitor_size()
@@ -740,20 +744,61 @@ class DesktopWindow(Gtk.ApplicationWindow):
         geometry = monitor.get_geometry()
         return (geometry.width, geometry.height)
 
-    def _layout_icons(self) -> None:
+    def _layout_icons(self, animate: bool = True) -> None:
         occupied: set[tuple[int, int]] = set()
         for view in self.icon_views.values():
             view.grid_x, view.grid_y = self._nearest_free_grid_position(view.grid_x, view.grid_y, occupied)
             occupied.add((view.grid_x, view.grid_y))
             self.positions[view.icon.id] = {"grid_x": view.grid_x, "grid_y": view.grid_y}
-            self._move_icon_view(view)
+            self._move_icon_view(view, animate=animate)
         self.canvas.queue_resize()
 
-    def _move_icon_view(self, view: IconView) -> None:
+    def _move_icon_view(self, view: IconView, animate: bool = True) -> None:
         x, y = self._grid_to_pixels(view.grid_x, view.grid_y)
+        if not animate or (view.pixel_x == 0 and view.pixel_y == 0):
+            self._cancel_icon_animation(view.icon.id)
+            self._set_icon_pixels(view, x, y)
+            return
+
+        self._animate_icon_view_to(view, x, y)
+
+    def _set_icon_pixels(self, view: IconView, x: int, y: int) -> None:
         view.pixel_x = x
         view.pixel_y = y
         self.canvas.move(view.widget, float(x), float(y))
+
+    def _cancel_icon_animation(self, icon_id: str) -> None:
+        source_id = self.icon_animation_sources.pop(icon_id, None)
+        if source_id is not None:
+            GLib.source_remove(source_id)
+
+    def _animate_icon_view_to(self, view: IconView, target_x: int, target_y: int) -> None:
+        self._cancel_icon_animation(view.icon.id)
+
+        start_x = view.pixel_x
+        start_y = view.pixel_y
+        if start_x == target_x and start_y == target_y:
+            return
+
+        start_time = time.monotonic()
+        duration = ICON_MOVE_ANIMATION_MS / 1000
+
+        def tick() -> bool:
+            elapsed = time.monotonic() - start_time
+            progress = min(1.0, elapsed / duration)
+            eased = progress * progress * (3 - 2 * progress)
+            current_x = round(start_x + ((target_x - start_x) * eased))
+            current_y = round(start_y + ((target_y - start_y) * eased))
+            self._set_icon_pixels(view, current_x, current_y)
+
+            if progress >= 1.0:
+                self.icon_animation_sources.pop(view.icon.id, None)
+                self._set_icon_pixels(view, target_x, target_y)
+                return GLib.SOURCE_REMOVE
+
+            return GLib.SOURCE_CONTINUE
+
+        self.icon_animation_sources[view.icon.id] = GLib.timeout_add(16, tick)
 
     def _current_icon_pixels(self, view: IconView) -> tuple[int, int]:
         return (view.pixel_x, view.pixel_y)
