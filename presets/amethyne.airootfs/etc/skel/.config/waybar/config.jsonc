@@ -30,7 +30,7 @@
         "sway/language",
         "battery",
         "battery#bat2",
-        "tray",
+        "tray","clock",
         "custom/power"
     ],
     // Modules configuration
