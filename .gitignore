@@ -3,4 +3,6 @@ work/
 out/
 *.iso
 *.img
-packages/amethyne-settings/pages/__pycache__/
+__pycache__/
+*.py[cod]
+*.pkg.tar.*

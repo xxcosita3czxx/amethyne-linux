@@ -13,7 +13,7 @@ usage() {
 Usage: ./clean.sh [options]
 
 Options:
-  --packages      Remove per-package build outputs under packages/*/{build,dist,packages} and *.spec.
+  --packages      Remove per-package build outputs, PyInstaller spec files, and Python caches.
   --docker        Remove the ${IMAGE_NAME} Docker image.
   --docker-cache  Prune Docker build cache. This affects global Docker build cache.
   --all           Clean project artifacts, package outputs, Docker image, and Docker build cache.
@@ -29,6 +29,8 @@ Use --packages to also remove:
   packages/*/dist/
   packages/*/packages/
   packages/*/*.spec
+  __pycache__/
+  packages/*/__pycache__/
 EOF
 }
 
@@ -78,13 +80,14 @@ fi
 if [[ "${CLEAN_PACKAGES}" == true ]]; then
     echo "==> Removing package build artifacts"
     if ! find ./packages -mindepth 2 -maxdepth 2 \( -name build -o -name dist -o -name packages \) -exec rm -rf {} + 2>/dev/null || \
+       ! find . -type d -name '__pycache__' -exec rm -rf {} + 2>/dev/null || \
        ! find ./packages -mindepth 2 -maxdepth 2 -name '*.spec' -exec rm -f {} + 2>/dev/null; then
         if command -v docker >/dev/null 2>&1; then
             echo "==> Retrying package artifact cleanup through Docker root"
             docker run --rm \
                 -v "$(pwd):/work" \
                 "${IMAGE_NAME}" \
-                sh -c 'find /work/packages -mindepth 2 -maxdepth 2 \( -name build -o -name dist -o -name packages \) -exec chmod -R u+rwX {} + 2>/dev/null || true; find /work/packages -mindepth 2 -maxdepth 2 \( -name build -o -name dist -o -name packages \) -exec rm -rf {} +; find /work/packages -mindepth 2 -maxdepth 2 -name "*.spec" -exec rm -f {} +'
+                sh -c 'find /work/packages -mindepth 2 -maxdepth 2 \( -name build -o -name dist -o -name packages \) -exec chmod -R u+rwX {} + 2>/dev/null || true; find /work -type d -name __pycache__ -exec chmod -R u+rwX {} + 2>/dev/null || true; find /work/packages -mindepth 2 -maxdepth 2 \( -name build -o -name dist -o -name packages \) -exec rm -rf {} +; find /work -type d -name __pycache__ -exec rm -rf {} +; find /work/packages -mindepth 2 -maxdepth 2 -name "*.spec" -exec rm -f {} +'
         else
             echo "error: failed to remove package artifacts and Docker is not available for root cleanup" >&2
             exit 1
